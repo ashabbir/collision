@@ -30,7 +30,7 @@ namespace CollisionDetection
                 ((float)cd.Random.NextDouble() - 0.5f) * Speed, 
                 ((float)cd.Random.NextDouble() - 0.5f) * Speed);
             // TODO: delete me
-            _boudingVolume = new BoundingVolume(_position, _model.Meshes[0].BoundingSphere.Radius * Scale, cd);
+            _boudingVolume = new BoundingVolume(_position, _model.Meshes[0].BoundingSphere.Radius * 1.1f, cd);
         }
 
         public void Update(float elapsedTime, SpaceShip[] spaceShips, BoundingCube boundingCube)
@@ -38,8 +38,9 @@ namespace CollisionDetection
             if (Collides(spaceShips, boundingCube))
                 _direction = Vector3.Negate(_direction);
 
-            _position += _direction;
-            _boudingVolume.Center += _direction;
+            _position += _direction * 1/Scale;
+            _boudingVolume.Center += _direction * 1 / BoundingVolume.Scale;
+
             _rotation.Update(elapsedTime);
         }
 

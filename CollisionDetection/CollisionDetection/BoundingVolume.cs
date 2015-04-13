@@ -11,7 +11,7 @@ namespace CollisionDetection
     // cheating for now so we can get the other parts of the code working
     class BoundingVolume
     {
-        readonly float Scale = 5f;
+        public const float Scale = 6f;
         Model _model;
         Matrix[] _transforms;
         public Vector3 Center { get; set; }
@@ -21,7 +21,7 @@ namespace CollisionDetection
         public BoundingVolume(Vector3 center, float radius, CollisionDetection cd)
         {
             Center = center;
-            Center += new Vector3(-30f, -10f, -10f);
+            Center += new Vector3(-30f, 10f, -10f);
             Radius = radius;
 
             _model = cd.Content.Load<Model>("Models\\Sphere");
