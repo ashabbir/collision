@@ -30,14 +30,12 @@ namespace CollisionDetection
                 ((float)cd.Random.NextDouble() - 0.5f) * Speed, 
                 ((float)cd.Random.NextDouble() - 0.5f) * Speed);
             // TODO: delete me
-            _boudingVolume = new BoundingVolume(new BoundingSphere( 
-                _model.Meshes[0].BoundingSphere.Center, 
-                _model.Meshes[0].BoundingSphere.Radius * Scale));
+            _boudingVolume = new BoundingVolume(_position, _model.Meshes[0].BoundingSphere.Radius * Scale, cd);
         }
 
-        public void Update(float elapsedTime, SpaceShip[] spaceShips)
+        public void Update(float elapsedTime, SpaceShip[] spaceShips, BoundingCube boundingCube)
         {
-            if (Collides(spaceShips))
+            if (Collides(spaceShips, boundingCube))
                 _direction = Vector3.Negate(_direction);
 
             _position += _direction;
@@ -45,7 +43,12 @@ namespace CollisionDetection
             _rotation.Update(elapsedTime);
         }
 
-        public void Draw(Vector3 cameraPosition)
+        public void DrawBoundingVolume(Camera camera)
+        {
+            _boudingVolume.Draw(camera);
+        }
+
+        public void Draw(Camera camera)
         {
             // Copy any parent transforms.
             _model.CopyAbsoluteBoneTransformsTo(_transforms);
@@ -61,9 +64,8 @@ namespace CollisionDetection
                         * _rotation.RotationMatrix
                         * Matrix.CreateTranslation(_position)
                         * Matrix.CreateScale(Scale);
-                    effect.View = Matrix.CreateLookAt(cameraPosition, Vector3.Zero, Vector3.Up);
-                    effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45.0f),
-                        CollisionDetection.AspectRatio, nearPlaneDistance: 1.0f, farPlaneDistance: 10000.0f);
+                    effect.View = camera.View;
+                    effect.Projection = camera.Projection;
                 }
                 // Draw the mesh, using the effects set above.
                 mesh.Draw();
@@ -74,18 +76,13 @@ namespace CollisionDetection
         /// Check if this spaceship collides with any other spaceship or the boundries
         /// </summary>
         /// <returns>Returns true if there is a collsion returns false otherwise</returns>
-        private bool Collides(SpaceShip[] spaceShips)
+        private bool Collides(SpaceShip[] spaceShips, BoundingCube boundingCube)
         {
             Vector3 center = _boudingVolume.Center;
             float radius = _boudingVolume.Radius;
 
-            // Collides against imaginary boundries
-            if (center.Y + radius > CollisionDetection.TopBound
-                || center.Y - radius < CollisionDetection.BottomBound
-                || center.X + radius > CollisionDetection.RightBound
-                || center.X - radius < CollisionDetection.LeftBound
-                || center.Z + radius > CollisionDetection.FrontBound
-                || center.Z - radius < CollisionDetection.BackBound)
+            // Collides against outer boundries
+            if (boundingCube.Collides(_boudingVolume))
                 return true;
 
             // Collides with another spacehship
@@ -115,6 +112,8 @@ namespace CollisionDetection
         {
             var thisShip = _model.Meshes[0].MeshParts;
             var otherShip = other._model.Meshes[0].MeshParts;
+
+            // TODO: split spaceship into convex polygons
 
             // TODO: Implement GJK
             return false;

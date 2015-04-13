@@ -16,22 +16,20 @@ namespace CollisionDetection
     /// </summary>
     public class CollisionDetection : Game
     {
-        public const int ScreenWidth = 1920, ScreenHeight = 1080;
-        public const float AspectRatio = (float)ScreenWidth / (float)ScreenHeight,
-            TopBound = 5000f, BottomBound = -5000f,
-            LeftBound = -5000f, RightBound = 5000f,
-            FrontBound = 5000f, BackBound = -5000f;
+        public const float OuterBoundarySize = 5000f;
         Random _random;
         public Random Random { get { return _random; } }
 
-        const int NumberOfShips = 10;
+        const int NumberOfShips = 1;
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
-        // Set the position of the camera in world space, for our view matrix.
-        Vector3 _cameraPosition = new Vector3(0.0f, 50.0f, 5000.0f);
+
+        BoundingCube _boundinghCube;
         SpaceShip[] _spaceShips;
+        Camera _camera;
 
         SpriteFont _fpsFont;
+        Vector2 _fpsPostion = new Vector2(32, 32);
         int _frameRate, _frameCount;
         TimeSpan _elapsedFrameTime = TimeSpan.Zero;
 
@@ -39,8 +37,8 @@ namespace CollisionDetection
         {
             Content.RootDirectory = "Content";
             _graphics = new GraphicsDeviceManager(this);
-            _graphics.PreferredBackBufferWidth = ScreenWidth;
-            _graphics.PreferredBackBufferHeight = ScreenHeight;
+            _graphics.PreferredBackBufferWidth = Camera.ScreenWidth;
+            _graphics.PreferredBackBufferHeight = Camera.ScreenHeight;
             // TODO: uncomment this while demonstrating
             // running fullscreen does not work well with debug mode
             //if (!_graphics.IsFullScreen)
@@ -57,8 +55,8 @@ namespace CollisionDetection
         /// and initialize them as well.
         /// </summary>
         protected override void Initialize()
-        {
-            // TODO: Add your initialization logic here
+        {   
+            // init here
             base.Initialize();
         }
 
@@ -72,12 +70,21 @@ namespace CollisionDetection
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _random = new Random();
 
+            // Camera
+            _camera = new Camera();
+
+            // Outer bouding cube
+            _boundinghCube = new BoundingCube(this, OuterBoundarySize);
+
+            // Spaceships
             _spaceShips = new SpaceShip[NumberOfShips];
             for (int i = 0; i < NumberOfShips; i++)
                 _spaceShips[i] = new SpaceShip(this);
 
+            // Text that displays FPS on upper left coner
             _fpsFont = Content.Load<SpriteFont>("Models\\Font");
 
+            
             base.LoadContent();
         }
 
@@ -102,9 +109,11 @@ namespace CollisionDetection
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 this.Exit();
 
+            _camera.Update();
+
             // Each spaceship updates itself
             for (int i = 0; i < NumberOfShips; i++)
-                _spaceShips[i].Update((float)gameTime.ElapsedGameTime.TotalMilliseconds, _spaceShips);
+                _spaceShips[i].Update((float)gameTime.ElapsedGameTime.TotalMilliseconds, _spaceShips, _boundinghCube);
 
 
             // From: http://blogs.msdn.com/b/shawnhar/archive/2007/06/08/displaying-the-framerate.aspx
@@ -129,19 +138,21 @@ namespace CollisionDetection
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             _frameCount++;
-            string fps = "FPS: " + _frameRate;
-
             _spriteBatch.Begin();
-            _spriteBatch.DrawString(_fpsFont, fps, new Vector2(32, 32), Color.White);
+            _spriteBatch.DrawString(_fpsFont, "FPS: " + _frameRate, _fpsPostion, Color.White);
             _spriteBatch.End();
 
-            //Sprite Batch messes some settings up for 3D drawing, this resets these settings 
+            _boundinghCube.Draw(_camera);
+
+            foreach (var spaceShip in _spaceShips)
+                spaceShip.DrawBoundingVolume(_camera);
+
+            //Anything that needs transparency must be set above this line
             GraphicsDevice.BlendState = BlendState.Opaque;
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            // Each Spaceship Draws itself
-            for (int i = 0; i < NumberOfShips; i++)
-                _spaceShips[i].Draw(_cameraPosition);
+            foreach (var spaceShip in _spaceShips)
+                spaceShip.Draw(_camera);
 
             base.Draw(gameTime);
         }
