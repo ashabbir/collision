@@ -24,6 +24,8 @@ namespace CollisionDetection
             _down = Vector3.Down,
             _right = Vector3.Right;
 
+
+
         Matrix _projection = Matrix.CreatePerspectiveFieldOfView(
                 MathHelper.PiOver4, AspectRatio, NearPlaneDistance, FarPlaceDistance);
         public Matrix Projection { get { return _projection; } }
@@ -44,48 +46,32 @@ namespace CollisionDetection
             { 
                 _position = new Vector3(InitialX, InitialY, InitialZ);
                 _up = Vector3.Up;
-                _left = Vector3.Left;
-                _down = Vector3.Down;
-                _right = Vector3.Right;
             }
 
 
             // Rotate camera around origin
             if (Keyboard.GetState().IsKeyDown(Keys.W))
-            { 
-                _position = Vector3.Transform(_position,
-                    Matrix.CreateFromAxisAngle(Vector3.UnitX, AngularSpeed));
-
+            {
+                _position = Vector3.Transform(_position, Matrix.CreateRotationX(AngularSpeed));
+                _up = Vector3.Transform(_up, Matrix.CreateRotationX(AngularSpeed));
             }
             if (Keyboard.GetState().IsKeyDown(Keys.A))
             {
-                _position =
-                    Vector3.Transform(_position,
-                    Matrix.CreateFromAxisAngle(Vector3.UnitY, -AngularSpeed));
+                _position = Vector3.Transform(_position, Matrix.CreateRotationY(-AngularSpeed));
+                _up = Vector3.Transform(_up, Matrix.CreateRotationY(-AngularSpeed));
             }
             if (Keyboard.GetState().IsKeyDown(Keys.S))
             {
-                _position =
-                    Vector3.Transform(_position,
-                    Matrix.CreateFromAxisAngle(Vector3.UnitX, -AngularSpeed));
+                _position = Vector3.Transform(_position, Matrix.CreateRotationX(-AngularSpeed));
+                _up = Vector3.Transform(_up, Matrix.CreateRotationX(-AngularSpeed));
 
             }
             if (Keyboard.GetState().IsKeyDown(Keys.D))
             {
-                _position =
-                    Vector3.Transform(_position,
-                    Matrix.CreateFromAxisAngle(Vector3.UnitY, AngularSpeed));
+                _position = Vector3.Transform(_position, Matrix.CreateRotationY(AngularSpeed));
+                _up = Vector3.Transform(_up, Matrix.CreateRotationY(AngularSpeed));
             }
-
-            _up = Vector3.Cross(_position, _left);
-            _left = Vector3.Cross(_position, _down);
-            _down = Vector3.Cross(_position, _right);
-            _right = Vector3.Cross(_position, _up);
-
             _up.Normalize();
-            _left.Normalize();
-            _right.Normalize();
-            _down.Normalize();
         }
     }
 }
