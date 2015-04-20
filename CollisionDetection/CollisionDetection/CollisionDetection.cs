@@ -27,6 +27,7 @@ namespace CollisionDetection
         BoundingCube _boundinghCube;
         SpaceShip[] _spaceShips;
         Camera _camera;
+        Octree _octTree;
 
         SpriteFont _fpsFont;
         Vector2 _fpsPostion = new Vector2(32, 32);
@@ -79,12 +80,13 @@ namespace CollisionDetection
             // Spaceships
             _spaceShips = new SpaceShip[NumberOfShips];
             for (int i = 0; i < NumberOfShips; i++)
-                _spaceShips[i] = new SpaceShip(this);
+                _spaceShips[i] = new SpaceShip(this, Vector3.Zero);
+
+            _octTree = new Octree(this, OuterBoundarySize, _spaceShips);
 
             // Text that displays FPS on upper left coner
             _fpsFont = Content.Load<SpriteFont>("Models\\Font");
 
-            
             base.LoadContent();
         }
 
@@ -146,6 +148,8 @@ namespace CollisionDetection
 
             foreach (var spaceShip in _spaceShips)
                 spaceShip.DrawBoundingVolume(_camera);
+
+            _octTree.Draw(_camera);
 
             //Anything that needs transparency must be set above this line
             GraphicsDevice.BlendState = BlendState.Opaque;

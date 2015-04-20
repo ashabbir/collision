@@ -4,5 +4,4 @@ Content\Models\ShipModel.xnb
 Content\Models\Sphere.xnb
 Content\Models\Font.xnb
 Content\textures\ShipTexture_0.xnb
-Content\Models\SphereHighPoly.xnb
-Content\Models\SphereLowPoly.xnb
+Content\Textures\GlassTransparentMiddle.xnb

@@ -73,7 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoudingCube.cs" />
-    <Compile Include="BoundingVolume.cs" />
+    <Compile Include="BoundingBall.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="Octree.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -15,38 +15,46 @@ namespace CollisionDetection
         Vector3 _position, _direction;
         Model _model;
         Matrix[] _transforms;
-        BoundingVolume _boudingVolume;
+        BoundingBall _boudingBall;
+
+        public BoundingBall CollisionSphere { get { return _boudingBall; } }
         
-        public SpaceShip(CollisionDetection cd) 
+        public SpaceShip(CollisionDetection cd, Vector3 position) 
         {
             _model = cd.Content.Load<Model>("Models\\ShipModel");
             _transforms = new Matrix[_model.Bones.Count];
             // TODO: start ship from differnt positions so they are not initally colliding
             // or give some time before testing for collision detection
-            _position = Vector3.Zero;
+            _position = position * 1 / Scale;
             _rotation = new Rotation(AxisToRotateUpon(cd.Random));
-            _direction = new Vector3(
-                ((float)cd.Random.NextDouble() - 0.5f) * Speed,
-                ((float)cd.Random.NextDouble() - 0.5f) * Speed, 
-                ((float)cd.Random.NextDouble() - 0.5f) * Speed);
+            if (_position == Vector3.Zero)
+            {
+                _direction = new Vector3(
+                    ((float)cd.Random.NextDouble() - 0.5f) * Speed,
+                    ((float)cd.Random.NextDouble() - 0.5f) * Speed,
+                    ((float)cd.Random.NextDouble() - 0.5f) * Speed);
+            }
+            else
+                _direction = Vector3.Zero;
             // TODO: delete me
-            _boudingVolume = new BoundingVolume(_position, _model.Meshes[0].BoundingSphere.Radius * 1.1f, cd);
+            _boudingBall = new BoundingBall(_position, _model.Meshes[0].BoundingSphere.Radius * 1.1f, cd);
         }
 
         public void Update(float elapsedTime, SpaceShip[] spaceShips, BoundingCube boundingCube)
         {
             if (Collides(spaceShips, boundingCube))
-                _direction = Vector3.Negate(_direction);
+                _direction = -_direction;
 
             _position += _direction * 1/Scale;
-            _boudingVolume.Center += _direction * 1 / BoundingVolume.Scale;
+            _boudingBall.Center += _direction * 1 / BoundingBall.Scale;
+
 
             _rotation.Update(elapsedTime);
         }
 
         public void DrawBoundingVolume(Camera camera)
         {
-            _boudingVolume.Draw(camera);
+            _boudingBall.Draw(camera);
         }
 
         public void Draw(Camera camera)
@@ -79,11 +87,11 @@ namespace CollisionDetection
         /// <returns>Returns true if there is a collsion returns false otherwise</returns>
         private bool Collides(SpaceShip[] spaceShips, BoundingCube boundingCube)
         {
-            Vector3 center = _boudingVolume.Center;
-            float radius = _boudingVolume.Radius;
+            Vector3 center = _boudingBall.Center;
+            float radius = _boudingBall.Radius;
 
             // Collides against outer boundries
-            if (boundingCube.Collides(_boudingVolume))
+            if (boundingCube.Collides(_boudingBall))
                 return true;
 
             // Collides with another spacehship
@@ -94,9 +102,9 @@ namespace CollisionDetection
                     continue;
 
                 // We compute the distanace squred to avoid the expensive squred root calculation 
-                Vector3 distance = center - ship._boudingVolume.Center;
+                Vector3 distance = center - ship._boudingBall.Center;
                 float distaceSquared = Vector3.Dot(distance, distance);
-                float radiiSumSquared = radius + ship._boudingVolume.Radius;
+                float radiiSumSquared = radius + ship._boudingBall.Radius;
                 // Need the square of the radius since we use the squre of the distance
                 radiiSumSquared *= radiiSumSquared;
                 // Checking bounding volumes for collision
