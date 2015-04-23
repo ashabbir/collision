@@ -80,9 +80,11 @@ namespace CollisionDetection
             // Spaceships
             _spaceShips = new SpaceShip[NumberOfShips];
             for (int i = 0; i < NumberOfShips; i++)
-                _spaceShips[i] = new SpaceShip(this, Vector3.Zero);
+            {
+                _spaceShips[i] = new SpaceShip(this, new Vector3(500, 500, 500));
+            }
 
-            _octTree = new Octree(this, OuterBoundarySize, _spaceShips);
+            //_octTree = new Octree(this, OuterBoundarySize, _spaceShips);
 
             // Text that displays FPS on upper left coner
             _fpsFont = Content.Load<SpriteFont>("Models\\Font");
@@ -113,10 +115,14 @@ namespace CollisionDetection
 
             _camera.Update();
 
+            _octTree = new Octree(this, OuterBoundarySize);
+
             // Each spaceship updates itself
             for (int i = 0; i < NumberOfShips; i++)
+            {
                 _spaceShips[i].Update((float)gameTime.ElapsedGameTime.TotalMilliseconds, _spaceShips, _boundinghCube);
-
+                _octTree.Add(_spaceShips[i]);
+            }
 
             // From: http://blogs.msdn.com/b/shawnhar/archive/2007/06/08/displaying-the-framerate.aspx
             _elapsedFrameTime += gameTime.ElapsedGameTime;
@@ -139,11 +145,6 @@ namespace CollisionDetection
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            _frameCount++;
-            _spriteBatch.Begin();
-            _spriteBatch.DrawString(_fpsFont, "FPS: " + _frameRate, _fpsPostion, Color.White);
-            _spriteBatch.End();
-
             _boundinghCube.Draw(_camera);
 
             foreach (var spaceShip in _spaceShips)
@@ -157,6 +158,11 @@ namespace CollisionDetection
 
             foreach (var spaceShip in _spaceShips)
                 spaceShip.Draw(_camera);
+
+            _frameCount++;
+            _spriteBatch.Begin();
+            _spriteBatch.DrawString(_fpsFont, "FPS: " + _frameRate, _fpsPostion, Color.White);
+            _spriteBatch.End();
 
             base.Draw(gameTime);
         }

@@ -11,6 +11,8 @@ namespace CollisionDetection
     {
         const int Depth = 1, NumberOfChildrenNodes = 8;
         OctreeNode<SpaceShip>[] _nodes;
+        CollisionDetection _cd;
+        readonly float _outerBoundarySize;
 
         // Statically Create
         public Octree(CollisionDetection cd, float OuterBoundarySize, SpaceShip[] ships)
@@ -32,59 +34,62 @@ namespace CollisionDetection
         public void Draw(Camera camera)
         {
             foreach (var node in _nodes)
-                node.Draw(camera);
+                if (node != null)
+                    node.Draw(camera);
         }
 
-        // Dinamically Create, Depth ignored
-        public Octree()
+        // Dinamically Create
+        public Octree(CollisionDetection cd, float outerBoundrySize)
         {
+            _cd = cd;
+            _outerBoundarySize = outerBoundrySize;
             _nodes = new OctreeNode<SpaceShip>[(int)Math.Pow(NumberOfChildrenNodes, Depth)];
         }
 
         // Dynamically create
-        private void AddHelper(CollisionDetection cd, float OuterBoundarySize, 
+        private void AddHelper(float OuterBoundarySize, 
             int i, SpaceShip ship, Vector3 center)
         {
             int childOctant = 0;
             // If straddling any of the dividing x, y, or z planes, exit directly
-                
+
             var delta = ship.CollisionSphere.Center - _nodes[i].Center;
-            float deltaX =  Math.Abs(delta.X), deltaY = Math.Abs(delta.Y)
+            float deltaX = Math.Abs(delta.X), deltaY = Math.Abs(delta.Y)
                 , deltaZ = Math.Abs(delta.Z), radiiSum = _nodes[i].HalfSize + ship.CollisionSphere.Radius;
-            bool straddling  = deltaX < radiiSum
+            bool straddling = deltaX < radiiSum
                 || deltaY < radiiSum
                 || deltaZ < radiiSum;
 
-            if (deltaX > 0.0f)childOctant |= 1;
-            if (deltaY > 0.0f)childOctant |= 2;
-            if (deltaZ > 0.0f)childOctant |= 4;
+            if (deltaX > 0.0f) childOctant |= 1;
+            if (deltaY > 0.0f) childOctant |= 2;
+            if (deltaZ > 0.0f) childOctant |= 4;
 
-                if (!straddling)
-                {
-                    if(_nodes[childOctant] == null)
-                        _nodes[childOctant] = new OctreeNode<SpaceShip>(cd, OuterBoundarySize * 0.5f, center);
-                    // Fully contained in existing child node; insert in that subtree
+            if (!straddling && childOctant < _nodes.Length)
+            {
+                if (_nodes[childOctant] == null)
+                    _nodes[childOctant] = new OctreeNode<SpaceShip>(_cd, OuterBoundarySize * 0.5f, center);
+                // Fully contained in existing child node; insert in that subtree
 
-                    float innerBoundry = OuterBoundarySize * 0.5f;
-                    Vector3 offset = new Vector3(((i & 1) != 0 ? innerBoundry : -innerBoundry)
-                        , ((i & 2) != 0 ? innerBoundry : -innerBoundry)
-                        , ((i & 4) != 0 ? innerBoundry : -innerBoundry));
-                    AddHelper(cd, innerBoundry, childOctant, ship, _nodes[i].Center + offset);
-                }
-                else
-                {
-                    // Straddling, or no child node to descend into, so
-                    // link object into linked list at this node
-                    if (_nodes[i].Objects == null) 
-                        _nodes[i].Objects = new LinkedList<SpaceShip>();
-                    _nodes[i].Objects.AddLast(ship);
-                }
+                float innerBoundry = OuterBoundarySize * 0.5f;
+                Vector3 offset = new Vector3(((i & 1) != 0 ? innerBoundry : -innerBoundry)
+                    , ((i & 2) != 0 ? innerBoundry : -innerBoundry)
+                    , ((i & 4) != 0 ? innerBoundry : -innerBoundry));
+                AddHelper(innerBoundry, childOctant, ship, _nodes[i].Center + offset);
+            }
+            else
+            {
+                // Straddling, or no child node to descend into, so
+                // link object into linked list at this node
+                if (_nodes[i].Objects == null)
+                    _nodes[i].Objects = new LinkedList<SpaceShip>();
+                _nodes[i].Objects.AddLast(ship);
+            }
         }
 
-        public void Add(CollisionDetection cd, float OuterBoundarySize, SpaceShip ship)
+        public void Add(SpaceShip ship)
         {
-            _nodes[0] = new OctreeNode<SpaceShip>(cd, OuterBoundarySize * 0.5f, Vector3.Zero);
-            AddHelper(cd, OuterBoundarySize, 0, ship, Vector3.Zero);
+            _nodes[0] = new OctreeNode<SpaceShip>(_cd, _outerBoundarySize * 0.5f, Vector3.Zero);
+            AddHelper(_outerBoundarySize, 0, ship, Vector3.Zero);
         }
 
         class OctreeNode<T>

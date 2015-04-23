@@ -9,7 +9,7 @@ namespace CollisionDetection
 {
     class SpaceShip
     {
-        const float Speed = 50.0f, 
+        public const float Speed = 50.0f, 
                     Scale = 0.3f;
         Rotation _rotation;
         Vector3 _position, _direction;
@@ -25,7 +25,7 @@ namespace CollisionDetection
             _transforms = new Matrix[_model.Bones.Count];
             // TODO: start ship from differnt positions so they are not initally colliding
             // or give some time before testing for collision detection
-            _position = position * 1 / Scale;
+            _position = position;
             _rotation = new Rotation(AxisToRotateUpon(cd.Random));
             if (_position == Vector3.Zero)
             {
@@ -36,8 +36,12 @@ namespace CollisionDetection
             }
             else
                 _direction = Vector3.Zero;
-            // TODO: delete me
-            _boudingBall = new BoundingBall(_position, _model.Meshes[0].BoundingSphere.Radius * 1.1f, cd);
+
+            // Extrating vertices
+            ModelMeshPart part = _model.Meshes[0].MeshParts[0];
+            VertexPositionNormalTexture[]  vertices = new VertexPositionNormalTexture[part.VertexBuffer.VertexCount];
+            part.VertexBuffer.GetData<VertexPositionNormalTexture>(vertices);
+            _boudingBall = new BoundingBall(cd, vertices, _position);
         }
 
         public void Update(float elapsedTime, SpaceShip[] spaceShips, BoundingCube boundingCube)
@@ -45,9 +49,9 @@ namespace CollisionDetection
             if (Collides(spaceShips, boundingCube))
                 _direction = -_direction;
 
-            _position += _direction * 1/Scale;
-            _boudingBall.Center += _direction * 1 / BoundingBall.Scale;
-
+            //Same scale
+            _position += _direction;// *1 / SpaceShip.Scale;
+            _boudingBall.Center += _direction;// *1 / BoundingBall.Scale;
 
             _rotation.Update(elapsedTime);
         }
@@ -70,9 +74,9 @@ namespace CollisionDetection
                 {
                     effect.EnableDefaultLighting();
                     effect.World = _transforms[mesh.ParentBone.Index]
-                        * _rotation.RotationMatrix
-                        * Matrix.CreateTranslation(_position)
-                        * Matrix.CreateScale(Scale);
+                         * Matrix.CreateScale(Scale)
+                         * _rotation.RotationMatrix
+                         * Matrix.CreateTranslation(_position);
                     effect.View = camera.View;
                     effect.Projection = camera.Projection;
                 }
@@ -87,30 +91,18 @@ namespace CollisionDetection
         /// <returns>Returns true if there is a collsion returns false otherwise</returns>
         private bool Collides(SpaceShip[] spaceShips, BoundingCube boundingCube)
         {
-            Vector3 center = _boudingBall.Center;
-            float radius = _boudingBall.Radius;
-
             // Collides against outer boundries
             if (boundingCube.Collides(_boudingBall))
                 return true;
 
             // Collides with another spacehship
-            foreach (SpaceShip ship in spaceShips)
+            foreach (SpaceShip that in spaceShips)
             {
                 // Avoid testing collsion against self
-                if (ship == this)
+                if (this == that)
                     continue;
 
-                // We compute the distanace squred to avoid the expensive squred root calculation 
-                Vector3 distance = center - ship._boudingBall.Center;
-                float distaceSquared = Vector3.Dot(distance, distance);
-                float radiiSumSquared = radius + ship._boudingBall.Radius;
-                // Need the square of the radius since we use the squre of the distance
-                radiiSumSquared *= radiiSumSquared;
-                // Checking bounding volumes for collision
-                bool SpheresIntersect = distaceSquared <= radiiSumSquared;
-
-                if (SpheresIntersect && GjkIntersects(ship))
+                if (this.CollisionSphere.Intersects(that.CollisionSphere) && GjkIntersects(that))
                     return true;
             }
 

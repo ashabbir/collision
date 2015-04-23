@@ -11,8 +11,8 @@ namespace CollisionDetection
     {
         public const int ScreenWidth = 1920, ScreenHeight = 1080;
         const float AspectRatio = (float)ScreenWidth / (float)ScreenHeight,
-            NearPlaneDistance = 1.0f, 
-            FarPlaceDistance = 10000.0f, 
+            NearPlaneDistance = 1.0f,
+            FarPlaceDistance = CollisionDetection.OuterBoundarySize * 2, 
             AngularSpeed = 0.05f, 
             InitialX = 0.0f, 
             InitialY = 50.0f, 
