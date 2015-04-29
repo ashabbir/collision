@@ -57,7 +57,6 @@ namespace CollisionDetection
         /// </summary>
         protected override void Initialize()
         {   
-            // init here
             base.Initialize();
         }
 
@@ -81,7 +80,7 @@ namespace CollisionDetection
             _spaceShips = new SpaceShip[NumberOfShips];
             for (int i = 0; i < NumberOfShips; i++)
             {
-                _spaceShips[i] = new SpaceShip(this, new Vector3(500, 500, 500));
+                _spaceShips[i] = new SpaceShip(this, Vector3.Zero);
             }
 
             //_octTree = new Octree(this, OuterBoundarySize, _spaceShips);
@@ -98,7 +97,6 @@ namespace CollisionDetection
         /// </summary>
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
             base.UnloadContent();
         }
 
@@ -115,13 +113,13 @@ namespace CollisionDetection
 
             _camera.Update();
 
-            _octTree = new Octree(this, OuterBoundarySize);
+            //_octTree = new Octree(this, OuterBoundarySize);
 
             // Each spaceship updates itself
             for (int i = 0; i < NumberOfShips; i++)
             {
                 _spaceShips[i].Update((float)gameTime.ElapsedGameTime.TotalMilliseconds, _spaceShips, _boundinghCube);
-                _octTree.Add(_spaceShips[i]);
+                //_octTree.Add(_spaceShips[i]);
             }
 
             // From: http://blogs.msdn.com/b/shawnhar/archive/2007/06/08/displaying-the-framerate.aspx
@@ -150,7 +148,7 @@ namespace CollisionDetection
             foreach (var spaceShip in _spaceShips)
                 spaceShip.DrawBoundingVolume(_camera);
 
-            _octTree.Draw(_camera);
+            //_octTree.Draw(_camera);
 
             //Anything that needs transparency must be set above this line
             GraphicsDevice.BlendState = BlendState.Opaque;

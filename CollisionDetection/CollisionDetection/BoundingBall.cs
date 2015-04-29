@@ -15,7 +15,7 @@ namespace CollisionDetection
         public Vector3 Center { get; set; }
         public float Radius { get; set; }
 
-        public BoundingBall(CollisionDetection cd, VertexPositionNormalTexture[] vertices, Vector3 position)
+        public BoundingBall(CollisionDetection cd, Vector3[] vertices, Vector3 position)
         {
             // Find the most separated point pair defining the encompassing AABB
             var mostDistantPoints = MostSeparatedPointsOnAABB(vertices);
@@ -26,7 +26,7 @@ namespace CollisionDetection
             //Center = ((vertices[min].Position + vertices[max].Position) * 0.5f * SpaceShip.Scale) + position;
             Center = position; //* SpaceShip.Scale + position;
             //position = Center;
-            Radius = (float)Math.Sqrt(Vector3.Dot(vertices[max].Position - Center, vertices[max].Position - Center)) * SpaceShip.Scale;
+            Radius = (float)Math.Sqrt(Vector3.Dot(vertices[max] - Center, vertices[max] - Center)) * SpaceShip.Scale;
             // Loading the sphere's model and saving the bone transform to make it easier to draw
             _model = cd.Content.Load<Model>("Models\\Sphere");
             _transforms = new Matrix[_model.Bones.Count];
@@ -34,24 +34,24 @@ namespace CollisionDetection
 
         // Compute indices to the two most separated points of the (up to) six points
         // defining the AABB encompassing the point set. Return these as min and max.
-        Tuple<int, int> MostSeparatedPointsOnAABB(VertexPositionNormalTexture[] vertices)
+        Tuple<int, int> MostSeparatedPointsOnAABB(Vector3[] vertices)
         {
             // First find most extreme points along principal axes
             int minx = 0, maxx = 0, miny = 0, maxy = 0, minz = 0, maxz = 0;
             for (int i = 1; i < vertices.Length; i++)
             {
-                if (vertices[i].Position.X < vertices[minx].Position.X) minx = i;
-                if (vertices[i].Position.X > vertices[maxx].Position.X) maxx = i;
-                if (vertices[i].Position.Y < vertices[miny].Position.Y) miny = i;
-                if (vertices[i].Position.Y > vertices[maxy].Position.Y) maxy = i;
-                if (vertices[i].Position.Z < vertices[minz].Position.Z) minz = i;
-                if (vertices[i].Position.Z > vertices[maxz].Position.Z) maxz = i;
+                if (vertices[i].X < vertices[minx].X) minx = i;
+                if (vertices[i].X > vertices[maxx].X) maxx = i;
+                if (vertices[i].Y < vertices[miny].Y) miny = i;
+                if (vertices[i].Y > vertices[maxy].Y) maxy = i;
+                if (vertices[i].Z < vertices[minz].Z) minz = i;
+                if (vertices[i].Z > vertices[maxz].Z) maxz = i;
             }
 
             // Compute the squared distances for the three pairs of points
-            float XDistanceSquared =Vector3.Dot(vertices[maxx].Position - vertices[minx].Position, vertices[maxx].Position - vertices[minx].Position);
-            float YDistanceSquared =Vector3.Dot(vertices[maxy].Position - vertices[miny].Position, vertices[maxy].Position - vertices[miny].Position);
-            float ZDistanceSquared =Vector3.Dot(vertices[maxz].Position - vertices[minz].Position, vertices[maxz].Position - vertices[minz].Position);
+            float XDistanceSquared =Vector3.Dot(vertices[maxx] - vertices[minx], vertices[maxx] - vertices[minx]);
+            float YDistanceSquared =Vector3.Dot(vertices[maxy] - vertices[miny], vertices[maxy] - vertices[miny]);
+            float ZDistanceSquared =Vector3.Dot(vertices[maxz] - vertices[minz], vertices[maxz] - vertices[minz]);
             // Pick the pair (min,max) of points most distant
             int min = minx;
             int max = maxx;

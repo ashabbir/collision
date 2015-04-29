@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollisionDetection", "CollisionDetection\CollisionDetection\CollisionDetection.csproj", "{5DD986CF-CA39-4301-A3EE-4017666ACDD4}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "CollisionDetectionContent", "CollisionDetection\CollisionDetectionContent\CollisionDetectionContent.contentproj", "{58050E4F-AC8B-4D55-AAE4-8E4521D28848}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollisionDetectionContent", "CollisionDetection\CollisionDetectionContent\CollisionDetectionContent.contentproj", "{58050E4F-AC8B-4D55-AAE4-8E4521D28848}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,5 +22,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
