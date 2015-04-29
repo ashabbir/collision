@@ -7,7 +7,7 @@ using System.Text;
 
 namespace CollisionDetection
 {
-    class BoundingBall
+    public class BoundingBall
     {
         public const float Scale = SpaceShip.Scale; // Needed because of floating point errors
         Model _model;
@@ -30,6 +30,15 @@ namespace CollisionDetection
             // Loading the sphere's model and saving the bone transform to make it easier to draw
             _model = cd.Content.Load<Model>("Models\\Sphere");
             _transforms = new Matrix[_model.Bones.Count];
+        }
+
+        public Vector3 GetFurthestPoint(Vector3 direction)
+        {
+            if (direction != Vector3.Zero)
+            {
+                direction.Normalize();
+            }
+            return Center + Radius * direction;
         }
 
         // Compute indices to the two most separated points of the (up to) six points

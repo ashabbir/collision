@@ -9,6 +9,9 @@ namespace CollisionDetection
 {
     class SpaceShip
     {
+        public int hits = 0;
+
+
         public const float Speed = 50.0f, 
                     Scale = 0.3f;
         bool _showHull, _showBall;
@@ -18,13 +21,12 @@ namespace CollisionDetection
         Vector3 _position, _direction;
         Model _model, _hull;
         Matrix[] _modelTransforms, _hullTransforms;
-        BoundingBall _boudingBall;
         Vector3[][] _hullVertices;
 
-        public BoundingBall CollisionSphere { get { return _boudingBall; } }
-
+        public BoundingBall CollisionSphere { get; set; }
         public SpaceShip(CollisionDetection cd, Vector3 position) 
         {
+            _showBall = true;
             _oldKeyState = Keyboard.GetState();// To avoid null checks on keyboard
             _model = cd.Content.Load<Model>("Models\\ShipModel");
             _hull = cd.Content.Load<Model>("Models\\ShipHull");
@@ -52,7 +54,7 @@ namespace CollisionDetection
                 var vertices = new Vector3[vpnt.Length];
                 for (int k = 0; k < vpnt.Length; k++)
                     vertices[k] = vpnt[k].Position;
-                _boudingBall = new BoundingBall(cd, vertices, _position);
+                CollisionSphere = new BoundingBall(cd, vertices, _position);
             }
             
             // Vertices of convex hull
@@ -78,7 +80,7 @@ namespace CollisionDetection
 
             //Same scale
             _position += _direction;// *1 / SpaceShip.Scale;
-            _boudingBall.Center += _direction;// *1 / BoundingBall.Scale;
+            CollisionSphere.Center += _direction;// *1 / BoundingBall.Scale;
 
             if (Keyboard.GetState().IsKeyDown(Keys.H) && !_oldKeyState.IsKeyDown(Keys.H))
                 _showHull = !_showHull;
@@ -93,7 +95,7 @@ namespace CollisionDetection
         public void DrawBoundingVolume(Camera camera)
         {
             if(_showBall)
-                _boudingBall.Draw(camera);
+                CollisionSphere.Draw(camera);
         }
 
         public void Draw(Camera camera)
@@ -155,7 +157,7 @@ namespace CollisionDetection
         private bool Collides(SpaceShip[] spaceShips, BoundingCube boundingCube)
         {
             // Collides against outer boundries
-            if (boundingCube.Collides(_boudingBall))
+            if (boundingCube.Collides(CollisionSphere))
                 return true;
 
             // Collides with another spacehship
@@ -165,24 +167,28 @@ namespace CollisionDetection
                 if (this == that)
                     continue;
 
-                if (this.CollisionSphere.Intersects(that.CollisionSphere) && GjkIntersects(that))
+                if (!this.CollisionSphere.Intersects(that.CollisionSphere))
+                {
+                    continue;
+                   
+                }
+                Console.WriteLine("initial Collision detected");
+
+                //GJK TEST
+                //right now GJK is working on spears need to make it on convex hulls
+                if (GJKAlgorithm.Intersects(this.CollisionSphere, that.CollisionSphere))
+                {
+                    Console.WriteLine("GJK Detected");
+                    hits++;
                     return true;
+                }
+                
             }
 
             return false;
         }
 
-        private bool GjkIntersects(SpaceShip other)
-        {
-            // Use convex hull of ship, ship is divided into 14 convex shapes
-           //_hullVertices;
-           //other._hullVertices;
-
-            // Set this variable to the index of the mesh that collides, -1 means not colliding with anybody
-            //  _collingMeshIndex = -1;
-            // TODO: Implement GJK
-            return false;
-        }
+     
 
         /// <summary>
         /// Randomly decides axis to rotate ship upon

@@ -1,8 +1,8 @@
 Content\Textures\ShipTexture.xnb
-Content\Textures\Glass.xnb
 Content\Models\ShipModel.xnb
-Content\Models\Sphere.xnb
 Content\Models\Font.xnb
 Content\textures\ShipTexture_0.xnb
-Content\Models\ShipHull.xnb
+Content\Textures\Glass.xnb
+Content\Models\Sphere.xnb
 Content\Textures\TreeBranch.xnb
+Content\Models\ShipHull.xnb

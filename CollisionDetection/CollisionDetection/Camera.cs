@@ -7,7 +7,7 @@ using System.Text;
 
 namespace CollisionDetection
 {
-    class Camera
+    public class Camera
     {
         public const int ScreenWidth = 1920, ScreenHeight = 1080;
         const float AspectRatio = (float)ScreenWidth / (float)ScreenHeight,

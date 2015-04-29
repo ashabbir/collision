@@ -8,6 +8,8 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using System.Timers;
+
 
 namespace CollisionDetection
 {
@@ -16,26 +18,38 @@ namespace CollisionDetection
     /// </summary>
     public class CollisionDetection : Game
     {
+        public Timer t = new Timer(5000);
         public const float OuterBoundarySize = 5000f;
         Random _random;
         public Random Random { get { return _random; } }
 
-        const int NumberOfShips = 1;
+        const int NumberOfShips = 5;
+        const int maxCollisions = 5;
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
 
         BoundingCube _boundinghCube;
-        SpaceShip[] _spaceShips;
+        List<SpaceShip> _spaceShips;
         Camera _camera;
         Octree _octTree;
+
+        public bool can_add { get; set; }
 
         SpriteFont _fpsFont;
         Vector2 _fpsPostion = new Vector2(32, 32);
         int _frameRate, _frameCount;
         TimeSpan _elapsedFrameTime = TimeSpan.Zero;
 
+        void t_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            can_add = true;
+        }
+
         public CollisionDetection()
         {
+            t.Elapsed += new ElapsedEventHandler(t_Elapsed);
+            t.Enabled = true;
+            can_add = false;
             Content.RootDirectory = "Content";
             _graphics = new GraphicsDeviceManager(this);
             _graphics.PreferredBackBufferWidth = Camera.ScreenWidth;
@@ -70,18 +84,22 @@ namespace CollisionDetection
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _random = new Random();
 
+            _spaceShips = new List<SpaceShip>();
+            _spaceShips.Add(new SpaceShip(this, Vector3.Zero));
+
             // Camera
             _camera = new Camera();
 
             // Outer bouding cube
             _boundinghCube = new BoundingCube(this, OuterBoundarySize);
 
-            // Spaceships
-            _spaceShips = new SpaceShip[NumberOfShips];
-            for (int i = 0; i < NumberOfShips; i++)
-            {
-                _spaceShips[i] = new SpaceShip(this, Vector3.Zero);
-            }
+          // Spaceships
+            // added timer and ships will be added with time clicks now
+          //  _spaceShips = new SpaceShip[NumberOfShips];
+          //  for (int i = 0; i < NumberOfShips; i++)
+          //  {
+          //      _spaceShips[i] = new SpaceShip(this, Vector3.Zero);
+          //  }
 
             //_octTree = new Octree(this, OuterBoundarySize, _spaceShips);
 
@@ -116,15 +134,54 @@ namespace CollisionDetection
 
             //_octTree = new Octree(this, OuterBoundarySize);
  
+            //add ships if the timer clicked and count is less
+            if (can_add && _spaceShips.Count < NumberOfShips)
+            {
+                _spaceShips.Add(new SpaceShip(this, Vector3.Zero));
+                can_add = false;
+            }
 
-            // Each spaceship updates itself
+            //remove ships if they have collided too many times
+            //this is necessary as some time they get stuck
+            List<SpaceShip> toremove = new List<SpaceShip>();
+            foreach (var ship in _spaceShips)
+            {
+                if (ship.hits > maxCollisions)
+                {
+                    toremove.Add(ship);
+                }
+            }
+            _spaceShips = _spaceShips.Except(toremove).ToList();
+
+           /* // Each spaceship updates itself
             for (int i = 0; i < NumberOfShips; i++)
             {
                 _spaceShips[i].Update((float)gameTime.ElapsedGameTime.TotalMilliseconds, _spaceShips, _boundinghCube);
                 //_octTree.Add(_spaceShips[i]);
             }
 
+            */
+             
+            // Each spaceship updates itself
+            foreach (var ship in _spaceShips)
+            {
+                ship.Update(
+                (float)gameTime.ElapsedGameTime.TotalMilliseconds,
+                _spaceShips.ToArray() , _boundinghCube
+                    );
+            }
            
+
+            //check for timer
+            _elapsedFrameTime += gameTime.ElapsedGameTime;
+            if (_elapsedFrameTime > TimeSpan.FromSeconds(1))
+            {
+                _elapsedFrameTime -= TimeSpan.FromSeconds(1);
+                _frameRate = _frameCount;
+                _frameCount = 0;
+            }
+
+
 
             base.Update(gameTime);
         }
