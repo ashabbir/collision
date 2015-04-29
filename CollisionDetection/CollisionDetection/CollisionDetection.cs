@@ -113,7 +113,9 @@ namespace CollisionDetection
 
             _camera.Update();
 
+
             //_octTree = new Octree(this, OuterBoundarySize);
+ 
 
             // Each spaceship updates itself
             for (int i = 0; i < NumberOfShips; i++)
@@ -122,15 +124,7 @@ namespace CollisionDetection
                 //_octTree.Add(_spaceShips[i]);
             }
 
-            // From: http://blogs.msdn.com/b/shawnhar/archive/2007/06/08/displaying-the-framerate.aspx
-            _elapsedFrameTime += gameTime.ElapsedGameTime;
-
-            if (_elapsedFrameTime > TimeSpan.FromSeconds(1))
-            {
-                _elapsedFrameTime -= TimeSpan.FromSeconds(1);
-                _frameRate = _frameCount;
-                _frameCount = 0;
-            }
+           
 
             base.Update(gameTime);
         }
@@ -142,6 +136,16 @@ namespace CollisionDetection
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
+
+            // From: http://blogs.msdn.com/b/shawnhar/archive/2007/06/08/displaying-the-framerate.aspx
+            _elapsedFrameTime += gameTime.ElapsedGameTime;
+
+            if (_elapsedFrameTime > TimeSpan.FromSeconds(1))
+            {
+                _elapsedFrameTime -= TimeSpan.FromSeconds(1);
+                _frameRate = _frameCount;
+                _frameCount = 0;
+            }
 
             _boundinghCube.Draw(_camera);
 

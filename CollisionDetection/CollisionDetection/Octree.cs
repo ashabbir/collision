@@ -9,7 +9,7 @@ namespace CollisionDetection
 {
     class Octree
     {
-        const int Depth = 1, NumberOfChildrenNodes = 8;
+        const int Depth = 3, NumberOfChildrenNodes = 8;
         OctreeNode<SpaceShip>[] _nodes;
         CollisionDetection _cd;
         readonly float _outerBoundarySize;

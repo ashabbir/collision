@@ -65,8 +65,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Textures\GlassTransparentMiddle.png">
-      <Name>GlassTransparentMiddle</Name>
+    <Compile Include="Textures\TreeBranch.png">
+      <Name>TreeBranch</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

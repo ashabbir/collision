@@ -11,8 +11,9 @@ namespace CollisionDetection
     {
         public const float Speed = 50.0f, 
                     Scale = 0.3f;
-        bool _showHull;
-        KeyboardState _oldState;
+        bool _showHull, _showBall;
+        int _collingMeshIndex = -1;
+        KeyboardState _oldKeyState;
         Rotation _rotation;
         Vector3 _position, _direction;
         Model _model, _hull;
@@ -24,7 +25,7 @@ namespace CollisionDetection
 
         public SpaceShip(CollisionDetection cd, Vector3 position) 
         {
-            _oldState = Keyboard.GetState();// To avoid null checks on keyboard
+            _oldKeyState = Keyboard.GetState();// To avoid null checks on keyboard
             _model = cd.Content.Load<Model>("Models\\ShipModel");
             _hull = cd.Content.Load<Model>("Models\\ShipHull");
             _modelTransforms = new Matrix[_model.Bones.Count];
@@ -79,17 +80,20 @@ namespace CollisionDetection
             _position += _direction;// *1 / SpaceShip.Scale;
             _boudingBall.Center += _direction;// *1 / BoundingBall.Scale;
 
-            if (Keyboard.GetState().IsKeyDown(Keys.H) && !_oldState.IsKeyDown(Keys.H))
+            if (Keyboard.GetState().IsKeyDown(Keys.H) && !_oldKeyState.IsKeyDown(Keys.H))
                 _showHull = !_showHull;
+            if (Keyboard.GetState().IsKeyDown(Keys.B) && !_oldKeyState.IsKeyDown(Keys.B))
+                _showBall = !_showBall;
 
-            _oldState = Keyboard.GetState();
+            _oldKeyState = Keyboard.GetState();
 
             _rotation.Update(elapsedTime);
         }
 
         public void DrawBoundingVolume(Camera camera)
         {
-            _boudingBall.Draw(camera);
+            if(_showBall)
+                _boudingBall.Draw(camera);
         }
 
         public void Draw(Camera camera)
@@ -100,21 +104,23 @@ namespace CollisionDetection
                 _hull.CopyAbsoluteBoneTransformsTo(_hullTransforms);
 
                 // Draw the model. A model can have multiple meshes, so loop.
-                foreach (ModelMesh mesh in _hull.Meshes)
+                for (int i = 0; i < _hull.Meshes.Count; i++)
                 {
                     // This is where the mesh orientation is set, as well as our camera and projection.
-                    foreach (BasicEffect effect in mesh.Effects)
+                    foreach (BasicEffect effect in _hull.Meshes[i].Effects)
                     {
                         effect.EnableDefaultLighting();
-                        effect.World = _hullTransforms[mesh.ParentBone.Index]
+                        effect.World = _hullTransforms[_hull.Meshes[i].ParentBone.Index]
                              * Matrix.CreateScale(Scale)
                              * _rotation.RotationMatrix
                              * Matrix.CreateTranslation(_position);
                         effect.View = camera.View;
                         effect.Projection = camera.Projection;
+                        if (i == _collingMeshIndex)
+                            effect.DiffuseColor = Vector3.UnitX; // Red
                     }
                     // Draw the mesh, using the effects set above.
-                    mesh.Draw();
+                    _hull.Meshes[i].Draw();
                 }
             }
             else
@@ -171,6 +177,9 @@ namespace CollisionDetection
             // Use convex hull of ship, ship is divided into 14 convex shapes
            //_hullVertices;
            //other._hullVertices;
+
+            // Set this variable to the index of the mesh that collides, -1 means not colliding with anybody
+            //  _collingMeshIndex = -1;
             // TODO: Implement GJK
             return false;
         }

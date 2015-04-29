@@ -42,7 +42,7 @@ namespace CollisionDetection
         public void Update()
         {
             // Reset camera's postion
-            if (Keyboard.GetState().IsKeyDown(Keys.Q))
+            if (Keyboard.GetState().IsKeyDown(Keys.R))
             { 
                 _position = new Vector3(InitialX, InitialY, InitialZ);
                 _up = Vector3.Up;

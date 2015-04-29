@@ -37,7 +37,7 @@ namespace CollisionDetection
         public BoundingCube(CollisionDetection cd, float size, Vector3 center)
         {
             float boundaryOffset = size * 0.5f;
-            float transparency = 0.3f;
+            float transparency = 0.6f;
 
             //// Outer boundry cube
             //_boundaries = new Boundary[6];
@@ -127,7 +127,7 @@ namespace CollisionDetection
 
                 FillVertices();
 
-                _texture = _cd.Content.Load<Texture2D>(hideMiddle ? "Textures\\GlassTransparentMiddle" : "Textures\\Glass");
+                _texture = _cd.Content.Load<Texture2D>(hideMiddle ? "Textures\\TreeBranch" : "Textures\\Glass");
                 _effect = new BasicEffect(_cd.GraphicsDevice);
             }
 
