@@ -21,12 +21,13 @@ namespace CollisionDetection
         Vector3 _position, _direction;
         Model _model, _hull;
         Matrix[] _modelTransforms, _hullTransforms;
-        Vector3[][] _hullVertices;
+        //Vector3[][] _hullVertices;
+        public List<Hull> ShipHulls { get; set; }
 
         public BoundingBall CollisionSphere { get; set; }
         public SpaceShip(CollisionDetection cd, Vector3 position) 
         {
-            _showBall = true;
+            //_showBall = true;
             _oldKeyState = Keyboard.GetState();// To avoid null checks on keyboard
             _model = cd.Content.Load<Model>("Models\\ShipModel");
             _hull = cd.Content.Load<Model>("Models\\ShipHull");
@@ -58,7 +59,9 @@ namespace CollisionDetection
             }
             
             // Vertices of convex hull
-            _hullVertices = new Vector3[_hull.Meshes.Count][];
+            /*
+             _hullVertices = new Vector3[_hull.Meshes.Count][];
+             
             for (int i = 0; i < _hull.Meshes.Count; i++)
                 for (int j = 0; j < _hull.Meshes[i].MeshParts.Count; j++)
                 {
@@ -70,6 +73,27 @@ namespace CollisionDetection
                     for (int k = 0; k < meshPart.NumVertices; k++)
                         _hullVertices[i][k] = vpnt[k].Position;
                 }
+                */
+
+            //loop through each mesh of hull
+            ShipHulls = new List<Hull>();
+            foreach (var hullmesh in _hull.Meshes)
+            {
+                List<Vector3> hull_vertices = new List<Vector3>();
+                //now get the vertices and make a hull object and add it to shiphull list
+                foreach (var meshPart in hullmesh.MeshParts)
+                {
+                    int vertexStride = meshPart.VertexBuffer.VertexDeclaration.VertexStride;
+                    
+                    var vpnt = new VertexPositionNormalTexture[meshPart.NumVertices];
+                    meshPart.VertexBuffer.GetData<VertexPositionNormalTexture>(vpnt);
+                    for (int k = 0; k < meshPart.NumVertices; k++)
+                        hull_vertices.Add(vpnt[k].Position);
+                }
+                ShipHulls.Add(new Hull(hull_vertices , Scale));
+            }
+
+           
 
         }
 
@@ -81,6 +105,7 @@ namespace CollisionDetection
             //Same scale
             _position += _direction;// *1 / SpaceShip.Scale;
             CollisionSphere.Center += _direction;// *1 / BoundingBall.Scale;
+            ShipHulls.ForEach(h => h.Center += _direction);
 
             if (Keyboard.GetState().IsKeyDown(Keys.H) && !_oldKeyState.IsKeyDown(Keys.H))
                 _showHull = !_showHull;
@@ -170,18 +195,32 @@ namespace CollisionDetection
                 if (!this.CollisionSphere.Intersects(that.CollisionSphere))
                 {
                     continue;
-                   
                 }
                 Console.WriteLine("initial Collision detected");
 
-                //GJK TEST
-                //right now GJK is working on spears need to make it on convex hulls
-                if (GJKAlgorithm.Intersects(this.CollisionSphere, that.CollisionSphere))
+                //GJK on HULLs
+                foreach (var this_hull in this.ShipHulls)
                 {
-                    Console.WriteLine("GJK Detected");
-                    hits++;
-                    return true;
+                    foreach (var that_hull in that.ShipHulls)
+                    {
+                        if (GJKAlgorithm.Intersects(this_hull, that_hull))
+                        {
+                            Console.WriteLine("GJK Detected");
+                            hits++;
+                            return true;
+                        }
+                    }
+                    
                 }
+
+               //GJK TEST
+               //right now GJK is working on spears need to make it on convex hulls
+               // if (GJKAlgorithm.Intersects(this.CollisionSphere, that.CollisionSphere))
+               // {
+               //     Console.WriteLine("GJK Detected");
+               //     hits++;
+               //     return true;
+               // }
                 
             }
 

@@ -24,7 +24,7 @@ namespace CollisionDetection
         public Random Random { get { return _random; } }
 
         const int NumberOfShips = 5;
-        const int maxCollisions = 5;
+        const int maxCollisions = 9;
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
 

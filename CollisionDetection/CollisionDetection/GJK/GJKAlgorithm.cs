@@ -8,7 +8,7 @@ namespace CollisionDetection
 {
     public static class GJKAlgorithm
     {
-        public static bool Intersects(BoundingBall regioneOne, BoundingBall regionTwo)
+        public static bool Intersects(Hull regioneOne, Hull regionTwo)
         {
             //Get an initial point on the Minkowski difference.
             Vector3 s = Support(regioneOne, regionTwo, Vector3.One);
@@ -264,12 +264,12 @@ namespace CollisionDetection
         /// difference along a given direction.
         /// </summary>
        public static Vector3 Support(
-            BoundingBall regionOne,
-            BoundingBall regionTwo,
+            Hull one,
+            Hull two,
             Vector3 direction)
         {
-            return regionOne.GetFurthestPoint(direction) -
-                regionTwo.GetFurthestPoint(-direction);
+            return one.GetFurthestPoint(direction) -
+                two.GetFurthestPoint(-direction);
         }
 
        

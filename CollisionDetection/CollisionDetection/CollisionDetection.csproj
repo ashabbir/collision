@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoudingCube.cs" />
+    <Compile Include="GJK\Hull.cs" />
     <Compile Include="GJK\BoundingBall.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="GJK\GJKAlgorithm.cs" />
