@@ -33,56 +33,6 @@ namespace CollisionDetection
             _boundaries[5] = new Boundary(Vector3.Backward * boundaryOffset, Vector3.Forward,
                 Vector3.Up, size, size, transparency, cd);
         }
-
-        public BoundingCube(CollisionDetection cd, float size, Vector3 center)
-        {
-            float boundaryOffset = size * 0.5f;
-            float transparency = 0.6f;
-
-            //// Outer boundry cube
-            //_boundaries = new Boundary[6];
-            //// Top
-            //_boundaries[0] = new Boundary(center, Vector3.Up,
-            //    Vector3.Backward, size, size, transparency, cd);
-            //// Bottom
-            //_boundaries[1] = new Boundary(center, Vector3.Down,
-            //    Vector3.Forward, size, size, transparency, cd);
-            //// Left
-            //_boundaries[2] = new Boundary(center, Vector3.Left,
-            //    Vector3.Up, size, size, transparency, cd);
-            //// Right
-            //_boundaries[3] = new Boundary(center, Vector3.Right,
-            //    Vector3.Up, size, size, transparency, cd);
-            //// Front
-            //_boundaries[4] = new Boundary(center, Vector3.Forward,
-            //    Vector3.Up, size, size, transparency, cd);
-            //// Back
-            //_boundaries[5] = new Boundary(center, Vector3.Backward,
-            //    Vector3.Up, size, size, transparency, cd);
-            const bool hideMiddle = true;
-
-            // Outer boundry cube
-            _boundaries = new Boundary[6];
-            // Top
-            _boundaries[0] = new Boundary(center + Vector3.Up * boundaryOffset, Vector3.Down,
-                Vector3.Backward, size, size, transparency, cd, hideMiddle);
-            // Bottom
-            _boundaries[1] = new Boundary(center + Vector3.Down * boundaryOffset, Vector3.Up,
-                Vector3.Forward, size, size, transparency, cd, hideMiddle);
-            // Left
-            _boundaries[2] = new Boundary(center + Vector3.Left * boundaryOffset, Vector3.Right,
-                Vector3.Up, size, size, transparency, cd, hideMiddle);
-            // Right
-            _boundaries[3] = new Boundary(center + Vector3.Right * boundaryOffset, Vector3.Left,
-                Vector3.Up, size, size, transparency, cd, hideMiddle);
-            // Front
-            _boundaries[4] = new Boundary(center + Vector3.Forward * boundaryOffset, Vector3.Backward,
-                Vector3.Up, size, size, transparency, cd, hideMiddle);
-            // Back
-            _boundaries[5] = new Boundary(center + Vector3.Backward * boundaryOffset, Vector3.Forward,
-                Vector3.Up, size, size, transparency, cd, hideMiddle);
-        }
-
         public bool Collides(BoundingBall bv)
         {
             foreach (var boundary in _boundaries)
@@ -108,7 +58,7 @@ namespace CollisionDetection
             CollisionDetection _cd;
 
             public Boundary(Vector3 origin, Vector3 normal, Vector3 up,
-                float width, float height, float transparency, CollisionDetection cd, bool hideMiddle = false)
+                float width, float height, float transparency, CollisionDetection cd)
             {
                 _vertices = new VertexPositionNormalTexture[4];
                 _indices = new short[6];
@@ -127,7 +77,7 @@ namespace CollisionDetection
 
                 FillVertices();
 
-                _texture = _cd.Content.Load<Texture2D>(hideMiddle ? "Textures\\TreeBranch" : "Textures\\Glass");
+                _texture = _cd.Content.Load<Texture2D>("Textures\\Glass");
                 _effect = new BasicEffect(_cd.GraphicsDevice);
             }
 
