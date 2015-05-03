@@ -23,7 +23,7 @@ namespace CollisionDetection
         Random _random;
         public Random Random { get { return _random; } }
 
-        const int NumberOfShips = 2;
+        const int NumberOfShips = 3;
         const int maxCollisions = 25;
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;

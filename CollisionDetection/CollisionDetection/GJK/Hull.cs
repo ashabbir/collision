@@ -16,21 +16,24 @@ namespace CollisionDetection
         public Vector3 Center { get; set; }
         public float Scale { get; set; }
         public int IndexNo { get; set; }
+        public Rotation Rot { get; set; }
 
-        public Hull(List<Vector3> vertices , float scale , int indexno)
+        public Hull(List<Vector3> vertices , float scale , int indexno , Rotation rot)
         {
             this.Center = Vector3.Zero;
             this.Verticecs = vertices;
             this.Scale = scale;
             this.IndexNo = indexno;
+            this.Rot = rot;
         }
 
 
         //get furthest point with dot poroduct
         public Vector3 GetFurthestPoint(Vector3 direction)
         {
+            Matrix world = Rot.RotationMatrix * Matrix.CreateTranslation(Center);
             float max = float.NegativeInfinity;
-            Vector3 vec = Verticecs.First();
+            Vector3 vec = Vector3.Transform( Verticecs.First() , world);
             if (direction != Vector3.Zero)
             {
                 direction.Normalize();
@@ -38,12 +41,12 @@ namespace CollisionDetection
 
             foreach (var v in Verticecs)
             {
-               
-                float dot = Vector3.Dot(v, direction);
+                Vector3 temp = Vector3.Transform(v, world);
+                float dot = Vector3.Dot(temp, direction);
                 if (dot > max)
                 {
                     max = dot;
-                    vec = v;
+                    vec = temp;
                 }
             }
            

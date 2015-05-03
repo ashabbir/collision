@@ -8,40 +8,51 @@ namespace CollisionDetection
 {
     public static class GJKAlgorithm
     {
-        public static bool Intersects(Hull regioneOne, Hull regionTwo)
+        public static bool Process(Hull hull_first, Hull hull_second)
         {
             //initial point and direction
-            Vector3 s = SupportFunction(regioneOne, regionTwo, Vector3.One);
+            Vector3 s = SupportFunction(hull_first, hull_second, Vector3.One);
             Vector3 dir = -s;
 
             Simplice simplice = new Simplice(s);
 
-            //loop 30 times (could be higer) the algo converges but dont wana spend too much time
-            for (int i = 0; i < 30; i++)
+            int counter = 0;
+            while(true)
             {
-                //Get our next simplice point toward the origin.
-                Vector3 next_vertice = SupportFunction(regioneOne, regionTwo, dir);
 
-                //If we move toward the origin and didn't pass it 
-                //then we never will and there's no intersection.
-                if (!SameDirectionTest(next_vertice, dir))
+               
+
+                //Get our next simplice point toward the origin.
+                Vector3 next_vertice = SupportFunction(hull_first, hull_second, dir);
+
+                //
+                if (!DirectionTest(next_vertice, dir))
                 {
                     return false;
+                }
+                else 
+                {
+                    //the thing gets stuck for ever have to break out of loop
+                    counter++;
+                    if (counter > 100)
+                    {
+                        return true;
+                    }
                 }
 
                 simplice.Vertices.Add(next_vertice);
               
 
                 //start processing GJK
-                //if you have tow points (a line)
                 if (simplice.Vertices.Count == 2)
                 {
+                    #region 2 point test -- line
                     Vector3 a = simplice.Vertices.ElementAt(1);
                     Vector3 b = simplice.Vertices.ElementAt(0);
                     Vector3 ab = b - a;
                     Vector3 aO = -a;
 
-                    if (SameDirectionTest(ab, aO))
+                    if (DirectionTest(ab, aO))
                     {
                         float dot = Vector3.Dot(ab, aO);
                         float angle = (float)Math.Acos(dot / (ab.Length() * aO.Length()));
@@ -52,10 +63,11 @@ namespace CollisionDetection
                         simplice.Vertices.Remove(b);
                         dir = aO;
                     }
+                    #endregion
                 }
                 else if (simplice.Vertices.Count == 3)
                 {
-                    //triangle test
+                    # region 3 point test -- triangle
                     Vector3 a = simplice.Vertices.ElementAt(2);
                     Vector3 b = simplice.Vertices.ElementAt(1);
                     Vector3 c = simplice.Vertices.ElementAt(0);
@@ -66,16 +78,16 @@ namespace CollisionDetection
                     Vector3 acNormal = Vector3.Cross(abc, ac);
                     Vector3 abNormal = Vector3.Cross(ab, abc);
 
-                    if (SameDirectionTest(acNormal, aO))
+                    if (DirectionTest(acNormal, aO))
                     {
-                        if (SameDirectionTest(ac, aO))
+                        if (DirectionTest(ac, aO))
                         {
                             simplice.Vertices.Remove(b);
                             dir = Vector3.Cross(Vector3.Cross(ac, aO), ac);
                         }
                         else
                         {
-                            if (SameDirectionTest(ab, aO))
+                            if (DirectionTest(ab, aO))
                             {
                                 simplice.Vertices.Remove(c);
                                 dir = Vector3.Cross(Vector3.Cross(ab, aO), ab);
@@ -90,9 +102,9 @@ namespace CollisionDetection
                     }
                     else
                     {
-                        if (SameDirectionTest(abNormal, aO))
+                        if (DirectionTest(abNormal, aO))
                         {
-                            if (SameDirectionTest(ab, aO))
+                            if (DirectionTest(ab, aO))
                             {
                                 simplice.Vertices.Remove(c);
                                 dir = Vector3.Cross(Vector3.Cross(ab, aO), ab);
@@ -106,7 +118,7 @@ namespace CollisionDetection
                         }
                         else
                         {
-                            if (SameDirectionTest(abc, aO))
+                            if (DirectionTest(abc, aO))
                             {
                                 dir = Vector3.Cross(Vector3.Cross(abc, aO), abc);
                             }
@@ -116,10 +128,11 @@ namespace CollisionDetection
                             }
                         }
                     }
-
+                    #endregion
                 }
-                else //4 points test the final test
+                else 
                 {
+                    #region 4 points test the final test
                     Vector3 a = simplice.Vertices.ElementAt(3);
                     Vector3 b = simplice.Vertices.ElementAt(2);
                     Vector3 c = simplice.Vertices.ElementAt(1);
@@ -136,15 +149,15 @@ namespace CollisionDetection
 
                     Vector3 aO = -a;
 
-                    if (SameDirectionTest(abc, aO))
+                    if (DirectionTest(abc, aO))
                     {
-                        if (SameDirectionTest(Vector3.Cross(abc, ac), aO))
+                        if (DirectionTest(Vector3.Cross(abc, ac), aO))
                         {
                             simplice.Vertices.Remove(b);
                             simplice.Vertices.Remove(d);
                             dir = Vector3.Cross(Vector3.Cross(ac, aO), ac);
                         }
-                        else if (SameDirectionTest(Vector3.Cross(ab, abc), aO))
+                        else if (DirectionTest(Vector3.Cross(ab, abc), aO))
                         {
                             simplice.Vertices.Remove(c);
                             simplice.Vertices.Remove(d);
@@ -156,15 +169,15 @@ namespace CollisionDetection
                             dir = abc;
                         }
                     }
-                    else if (SameDirectionTest(acd, aO))
+                    else if (DirectionTest(acd, aO))
                     {
-                        if (SameDirectionTest(Vector3.Cross(acd, ad), aO))
+                        if (DirectionTest(Vector3.Cross(acd, ad), aO))
                         {
                             simplice.Vertices.Remove(b);
                             simplice.Vertices.Remove(c);
                             dir = Vector3.Cross(Vector3.Cross(ad, aO), ad);
                         }
-                        else if (SameDirectionTest(Vector3.Cross(ac, acd), aO))
+                        else if (DirectionTest(Vector3.Cross(ac, acd), aO))
                         {
                             simplice.Vertices.Remove(b);
                             simplice.Vertices.Remove(d);
@@ -176,15 +189,15 @@ namespace CollisionDetection
                             dir = acd;
                         }
                     }
-                    else if (SameDirectionTest(abd, aO))
+                    else if (DirectionTest(abd, aO))
                     {
-                        if (SameDirectionTest(Vector3.Cross(abd, ab), aO))
+                        if (DirectionTest(Vector3.Cross(abd, ab), aO))
                         {
                             simplice.Vertices.Remove(c);
                             simplice.Vertices.Remove(d);
                             dir = Vector3.Cross(Vector3.Cross(ab, aO), ab);
                         }
-                        else if (SameDirectionTest(Vector3.Cross(ad, abd), aO))
+                        else if (DirectionTest(Vector3.Cross(ad, abd), aO))
                         {
                             simplice.Vertices.Remove(b);
                             simplice.Vertices.Remove(c);
@@ -195,14 +208,16 @@ namespace CollisionDetection
                             simplice.Vertices.Remove(c);
                             dir = abd;
                         }
+                   
                     }
                     else
                     {
                         return true;
                     }
+                    #endregion
+
                 }
             }
-            return true;
         }
 
    
@@ -222,7 +237,7 @@ namespace CollisionDetection
         }
 
        
-         public static bool SameDirectionTest( Vector3 vector, Vector3 otherVector)
+         public static bool DirectionTest( Vector3 vector, Vector3 otherVector)
          {
              return Vector3.Dot(vector, otherVector) > 0;
          }

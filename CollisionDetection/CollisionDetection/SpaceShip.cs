@@ -14,16 +14,15 @@ namespace CollisionDetection
         public int hits = 0;
         public Boolean Colored { get; set; }
         
-        public const float Speed = 60.0f, 
-                    Scale = 0.3f;
+        public const float Speed = 65.0f, 
+                    Scale = 0.25f;
         bool _showHull, _showBall;
-        int _collingMeshIndex = -1;
+        int _collingMeshIndex = 0;
         KeyboardState _oldKeyState;
         Rotation _rotation;
         Vector3 _position, _direction;
         Model _model, _hull_model;
         Matrix[] _modelTransforms, _hullTransforms;
-        //Vector3[][] _hullVertices;
         public List<Hull> ShipHulls { get; set; }
 
         #endregion
@@ -85,7 +84,7 @@ namespace CollisionDetection
                 }
                 //how that i have all the vertices in a hull
                 //let me add that to ship hull with index number
-                ShipHulls.Add(new Hull(hull_vertices , Scale , hullmesh.ParentBone.Index));
+                ShipHulls.Add(new Hull(hull_vertices , Scale , hullmesh.ParentBone.Index , _rotation));
             }
 
            
@@ -110,6 +109,7 @@ namespace CollisionDetection
             _oldKeyState = Keyboard.GetState();
 
             _rotation.Update(elapsedTime);
+            this.ShipHulls.ForEach(h => h.Rot.Update(elapsedTime));
         }
 
         public void DrawBoundingVolume(Camera camera)
@@ -199,8 +199,13 @@ namespace CollisionDetection
                 //gjk for ship hulls
                 if (!this.CollisionSphere.Intersects(that.CollisionSphere))
                 {
+                    that._showBall = false;
+                    _showBall = false;
                     continue;
                 }
+
+                this._showBall = true;
+                that._showBall = true;
                 //Console.WriteLine("initial Collision detected");
 
                 //GJK on HULLs
@@ -208,7 +213,7 @@ namespace CollisionDetection
                 {
                     foreach (var that_hull in that.ShipHulls)
                     {
-                        if (GJKAlgorithm.Intersects(this_hull, that_hull))
+                        if (GJKAlgorithm.Process(this_hull, that_hull))
                         {
                             this._collingMeshIndex = this_hull.IndexNo;
                             that._collingMeshIndex = that_hull.IndexNo;
