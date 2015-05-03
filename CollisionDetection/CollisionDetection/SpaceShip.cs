@@ -14,7 +14,7 @@ namespace CollisionDetection
         public int hits = 0;
         public Boolean Colored { get; set; }
         
-        public const float Speed = 50.0f, 
+        public const float Speed = 60.0f, 
                     Scale = 0.3f;
         bool _showHull, _showBall;
         int _collingMeshIndex = -1;
