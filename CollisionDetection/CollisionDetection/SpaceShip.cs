@@ -31,8 +31,8 @@ namespace CollisionDetection
         public BoundingBall CollisionSphere { get; set; }
         public SpaceShip(CollisionDetection cd) 
         {
-            _showBall = true;
-            _showHull = true;
+            //_showBall = true;
+            //_showHull = true;
             _oldKeyState = Keyboard.GetState();// To avoid null checks on keyboard
             _model = cd.Content.Load<Model>("Models\\ShipModel");
             _hull_model = cd.Content.Load<Model>("Models\\ShipHull");
