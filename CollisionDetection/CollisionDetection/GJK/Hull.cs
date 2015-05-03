@@ -7,17 +7,22 @@ using System.Text;
 
 namespace CollisionDetection
 {
+    /// <summary>
+    /// hull just to hold vertices and has get guthest point that will be used by gjk algo
+    /// </summary>
     public class Hull
     {
         public List<Vector3> Verticecs { get; set; }
         public Vector3 Center { get; set; }
         public float Scale { get; set; }
+        public int IndexNo { get; set; }
 
-        public Hull(List<Vector3> vertices , float scale)
+        public Hull(List<Vector3> vertices , float scale , int indexno)
         {
             this.Center = Vector3.Zero;
             this.Verticecs = vertices;
             this.Scale = scale;
+            this.IndexNo = indexno;
         }
 
 

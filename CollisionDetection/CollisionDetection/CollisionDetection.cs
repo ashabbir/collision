@@ -23,8 +23,8 @@ namespace CollisionDetection
         Random _random;
         public Random Random { get { return _random; } }
 
-        const int NumberOfShips = 5;
-        const int maxCollisions = 9;
+        const int NumberOfShips = 3;
+        const int maxCollisions = 10;
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
 
@@ -85,7 +85,7 @@ namespace CollisionDetection
             _random = new Random();
 
             _spaceShips = new List<SpaceShip>();
-            _spaceShips.Add(new SpaceShip(this, Vector3.Zero));
+            _spaceShips.Add(new SpaceShip(this));
 
             // Camera
             _camera = new Camera();
@@ -93,13 +93,7 @@ namespace CollisionDetection
             // Outer bouding cube
             _boundinghCube = new BoundingCube(this, OuterBoundarySize);
 
-          // Spaceships
-            // added timer and ships will be added with time clicks now
-          //  _spaceShips = new SpaceShip[NumberOfShips];
-          //  for (int i = 0; i < NumberOfShips; i++)
-          //  {
-          //      _spaceShips[i] = new SpaceShip(this, Vector3.Zero);
-          //  }
+        
 
             //_octTree = new Octree(this, OuterBoundarySize, _spaceShips);
 
@@ -137,7 +131,7 @@ namespace CollisionDetection
             //add ships if the timer clicked and count is less
             if (can_add && _spaceShips.Count < NumberOfShips)
             {
-                _spaceShips.Add(new SpaceShip(this, Vector3.Zero));
+                _spaceShips.Add(new SpaceShip(this));
                 can_add = false;
             }
 
@@ -153,14 +147,7 @@ namespace CollisionDetection
             }
             _spaceShips = _spaceShips.Except(toremove).ToList();
 
-           /* // Each spaceship updates itself
-            for (int i = 0; i < NumberOfShips; i++)
-            {
-                _spaceShips[i].Update((float)gameTime.ElapsedGameTime.TotalMilliseconds, _spaceShips, _boundinghCube);
-                //_octTree.Add(_spaceShips[i]);
-            }
-
-            */
+          
              
             // Each spaceship updates itself
             foreach (var ship in _spaceShips)
@@ -194,7 +181,6 @@ namespace CollisionDetection
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // From: http://blogs.msdn.com/b/shawnhar/archive/2007/06/08/displaying-the-framerate.aspx
             _elapsedFrameTime += gameTime.ElapsedGameTime;
 
             if (_elapsedFrameTime > TimeSpan.FromSeconds(1))

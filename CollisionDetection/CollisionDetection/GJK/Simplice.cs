@@ -6,6 +6,9 @@ using Microsoft.Xna.Framework;
 
 namespace CollisionDetection
 {
+    /// <summary>
+    /// Simplice just a collection of vertices. (at most should have 3)
+    /// </summary>
     public class Simplice
     {
 

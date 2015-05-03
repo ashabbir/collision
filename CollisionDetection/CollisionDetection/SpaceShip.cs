@@ -9,9 +9,11 @@ namespace CollisionDetection
 {
     class SpaceShip
     {
+
+        #region variables
         public int hits = 0;
-
-
+        public Boolean Colored { get; set; }
+        
         public const float Speed = 50.0f, 
                     Scale = 0.3f;
         bool _showHull, _showBall;
@@ -19,33 +21,40 @@ namespace CollisionDetection
         KeyboardState _oldKeyState;
         Rotation _rotation;
         Vector3 _position, _direction;
-        Model _model, _hull;
+        Model _model, _hull_model;
         Matrix[] _modelTransforms, _hullTransforms;
         //Vector3[][] _hullVertices;
         public List<Hull> ShipHulls { get; set; }
 
+        #endregion
+
         public BoundingBall CollisionSphere { get; set; }
-        public SpaceShip(CollisionDetection cd, Vector3 position) 
+        public SpaceShip(CollisionDetection cd) 
         {
-            //_showBall = true;
+            _showBall = true;
+            _showHull = true;
             _oldKeyState = Keyboard.GetState();// To avoid null checks on keyboard
             _model = cd.Content.Load<Model>("Models\\ShipModel");
-            _hull = cd.Content.Load<Model>("Models\\ShipHull");
+            _hull_model = cd.Content.Load<Model>("Models\\ShipHull");
             _modelTransforms = new Matrix[_model.Bones.Count];
-            _hullTransforms = new Matrix[_hull.Bones.Count];
+            _hullTransforms = new Matrix[_hull_model.Bones.Count];
             // TODO: start ship from differnt positions so they are not initally colliding
             // or give some time before testing for collision detection
-            _position = position;
+
+            _position = new Vector3(
+                    ((float)(cd.Random.Next(-100,100) * cd.Random.NextDouble())),
+                    ((float)(cd.Random.Next(-100,100) * cd.Random.NextDouble())),
+                    ((float)(cd.Random.Next(-10,10) * cd.Random.NextDouble()))
+                    );
+
+            _direction = new Vector3(
+                   ((float)cd.Random.NextDouble() - 0.5f) * Speed,
+                   ((float)cd.Random.NextDouble() - 0.5f) * Speed,
+                   ((float)cd.Random.NextDouble() - 0.5f) * Speed);
+
+
             _rotation = new Rotation(AxisToRotateUpon(cd.Random));
-            if (_position == Vector3.Zero)
-            {
-                _direction = new Vector3(
-                    ((float)cd.Random.NextDouble() - 0.5f) * Speed,
-                    ((float)cd.Random.NextDouble() - 0.5f) * Speed,
-                    ((float)cd.Random.NextDouble() - 0.5f) * Speed);
-            }
-            else
-                _direction = Vector3.Zero;
+
 
             // Extrating vertices from model
             {// Model is only has one mesh
@@ -58,26 +67,10 @@ namespace CollisionDetection
                 CollisionSphere = new BoundingBall(cd, vertices, _position);
             }
             
-            // Vertices of convex hull
-            /*
-             _hullVertices = new Vector3[_hull.Meshes.Count][];
-             
-            for (int i = 0; i < _hull.Meshes.Count; i++)
-                for (int j = 0; j < _hull.Meshes[i].MeshParts.Count; j++)
-                {
-                    var meshPart = _hull.Meshes[i].MeshParts[j];
-                    int vertexStride = meshPart.VertexBuffer.VertexDeclaration.VertexStride;
-                    _hullVertices[i] = new Vector3[meshPart.NumVertices];
-                    var vpnt = new VertexPositionNormalTexture[meshPart.NumVertices];
-                    meshPart.VertexBuffer.GetData<VertexPositionNormalTexture>(vpnt);
-                    for (int k = 0; k < meshPart.NumVertices; k++)
-                        _hullVertices[i][k] = vpnt[k].Position;
-                }
-                */
-
+            
             //loop through each mesh of hull
             ShipHulls = new List<Hull>();
-            foreach (var hullmesh in _hull.Meshes)
+            foreach (var hullmesh in _hull_model.Meshes)
             {
                 List<Vector3> hull_vertices = new List<Vector3>();
                 //now get the vertices and make a hull object and add it to shiphull list
@@ -90,7 +83,9 @@ namespace CollisionDetection
                     for (int k = 0; k < meshPart.NumVertices; k++)
                         hull_vertices.Add(vpnt[k].Position);
                 }
-                ShipHulls.Add(new Hull(hull_vertices , Scale));
+                //how that i have all the vertices in a hull
+                //let me add that to ship hull with index number
+                ShipHulls.Add(new Hull(hull_vertices , Scale , hullmesh.ParentBone.Index));
             }
 
            
@@ -128,27 +123,34 @@ namespace CollisionDetection
             if (_showHull)
             {
                 // Copy any parent transforms.
-                _hull.CopyAbsoluteBoneTransformsTo(_hullTransforms);
+                _hull_model.CopyAbsoluteBoneTransformsTo(_hullTransforms);
 
                 // Draw the model. A model can have multiple meshes, so loop.
-                for (int i = 0; i < _hull.Meshes.Count; i++)
+                for (int i = 0; i < _hull_model.Meshes.Count; i++)
                 {
                     // This is where the mesh orientation is set, as well as our camera and projection.
-                    foreach (BasicEffect effect in _hull.Meshes[i].Effects)
+                    foreach (BasicEffect effect in _hull_model.Meshes[i].Effects)
                     {
                         effect.EnableDefaultLighting();
-                        effect.World = _hullTransforms[_hull.Meshes[i].ParentBone.Index]
+                        effect.World = _hullTransforms[_hull_model.Meshes[i].ParentBone.Index]
                              * Matrix.CreateScale(Scale)
                              * _rotation.RotationMatrix
                              * Matrix.CreateTranslation(_position);
                         effect.View = camera.View;
                         effect.Projection = camera.Projection;
-                        if (i == _collingMeshIndex)
-                            effect.DiffuseColor = Vector3.UnitX; // Red
+                        if (i == _collingMeshIndex && Colored)
+                        {
+                           effect.DiffuseColor = Color.Maroon.ToVector3();
+                        }
+                        else
+                        {
+                            effect.DiffuseColor = Color.Green.ToVector3();
+                        }
                     }
                     // Draw the mesh, using the effects set above.
-                    _hull.Meshes[i].Draw();
+                    _hull_model.Meshes[i].Draw();
                 }
+                
             }
             else
             {
@@ -192,11 +194,14 @@ namespace CollisionDetection
                 if (this == that)
                     continue;
 
+
+                //first check for spear if the spears intersect then go further into
+                //gjk for ship hulls
                 if (!this.CollisionSphere.Intersects(that.CollisionSphere))
                 {
                     continue;
                 }
-                Console.WriteLine("initial Collision detected");
+                //Console.WriteLine("initial Collision detected");
 
                 //GJK on HULLs
                 foreach (var this_hull in this.ShipHulls)
@@ -205,23 +210,19 @@ namespace CollisionDetection
                     {
                         if (GJKAlgorithm.Intersects(this_hull, that_hull))
                         {
-                            Console.WriteLine("GJK Detected");
+                            this._collingMeshIndex = this_hull.IndexNo;
+                            that._collingMeshIndex = that_hull.IndexNo;
+                            //Console.WriteLine("GJK Detected");
                             hits++;
+                            this.Colored = true;
+                            that.Colored = true;
                             return true;
                         }
+                        
                     }
                     
                 }
 
-               //GJK TEST
-               //right now GJK is working on spears need to make it on convex hulls
-               // if (GJKAlgorithm.Intersects(this.CollisionSphere, that.CollisionSphere))
-               // {
-               //     Console.WriteLine("GJK Detected");
-               //     hits++;
-               //     return true;
-               // }
-                
             }
 
             return false;
