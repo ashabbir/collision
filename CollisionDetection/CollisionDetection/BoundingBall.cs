@@ -32,6 +32,7 @@ namespace CollisionDetection
             _transforms = new Matrix[_model.Bones.Count];
         }
 
+        //incase if u wana do gjk on spears that ill use this function
         public Vector3 GetFurthestPoint(Vector3 direction)
         {
             if (direction != Vector3.Zero)

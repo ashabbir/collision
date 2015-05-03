@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CollisionDetection
 {
-    class Rotation
+    public class Rotation
     {
         const float Speed = 0.03f;
         float _rotationX, _rotationY, _rotationZ;

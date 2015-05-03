@@ -8,272 +8,236 @@ namespace CollisionDetection
 {
     public static class GJKAlgorithm
     {
-        public static bool Intersects(Hull regioneOne, Hull regionTwo)
+        public static bool Process(Hull hull_first, Hull hull_second)
         {
-            //Get an initial point on the Minkowski difference.
-            Vector3 s = Support(regioneOne, regionTwo, Vector3.One);
+            //initial point and direction
+            Vector3 s = SupportFunction(hull_first, hull_second, Vector3.One);
+            Vector3 dir = -s;
 
-            //Create our initial simplice.
             Simplice simplice = new Simplice(s);
 
-            //Choose an initial direction toward the origin.
-            Vector3 d = -s;
-
-            //Choose a maximim number of iterations to avoid an 
-            //infinite loop during a non-convergent search.
-            int maxIterations = 50;
-
-            for (int i = 0; i < maxIterations; i++)
+            int counter = 0;
+            while(true)
             {
-                //Get our next simplice point toward the origin.
-                Vector3 a = Support(regioneOne, regionTwo, d);
 
-                //If we move toward the origin and didn't pass it 
-                //then we never will and there's no intersection.
-                if (!SameDirectionTest(a, d))
+               
+
+                //Get our next simplice point toward the origin.
+                Vector3 next_vertice = SupportFunction(hull_first, hull_second, dir);
+
+                //
+                if (!DirectionTest(next_vertice, dir))
                 {
                     return false;
                 }
-                //otherwise we add the new
-                //point to the simplice and
-                //process it.
-                simplice.Vertices.Add(a);
-                //Here we either find a collision or we find the closest feature of
-                //the simplice to the origin, make that the new simplice and update the direction
-                //to move toward the origin from that feature.
-                if (ProcessSimplex(ref simplice, ref d))
+                else 
                 {
-                    return true;
-                }
-            }
-            //If we still couldn't find a simplice 
-            //that contains the origin then we
-            //"probably" have an intersection.
-            return true;
-        }
-
-        /// <summary>
-        ///Either finds a collision or the closest feature of the simplice to the origin, 
-        ///and updates the simplice and direction.
-        /// </summary>
-        static bool ProcessSimplex(ref Simplice simplice, ref Vector3 direction)
-        {
-            if (simplice.Vertices.Count == 2)
-            {
-                return ProcessLine(ref simplice, ref direction);
-            }
-            else if (simplice.Vertices.Count == 3)
-            {
-                return ProcessTriangle(ref simplice, ref direction);
-            }
-            else
-            {
-                return ProcessTetrehedron(ref simplice, ref direction);
-            }
-        }
-
-        /// <summary>
-        /// Determines which Veronoi region of a line segment 
-        /// the origin is in, utilizing the preserved winding
-        /// of the simplice to eliminate certain regions.
-        /// </summary>
-        static bool ProcessLine(ref Simplice simplice, ref Vector3 direction)
-        {
-            Vector3 a = simplice.Vertices.ElementAt(1);
-            Vector3 b = simplice.Vertices.ElementAt(0);
-            Vector3 ab = b - a;
-            Vector3 aO = -a;
-
-            if (SameDirectionTest(ab,aO))
-            {
-                float dot = Vector3.Dot(ab, aO);
-                float angle = (float)Math.Acos(dot / (ab.Length() * aO.Length()));
-                direction = Vector3.Cross(Vector3.Cross(ab, aO), ab);
-            }
-            else
-            {
-                simplice.Vertices.Remove(b);
-                direction = aO;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Determines which Veronoi region of a triangle 
-        /// the origin is in, utilizing the preserved winding
-        /// of the simplice to eliminate certain regions.
-        /// </summary>
-        static bool ProcessTriangle(ref Simplice simplice, ref Vector3 direction)
-        {
-            Vector3 a = simplice.Vertices.ElementAt(2);
-            Vector3 b = simplice.Vertices.ElementAt(1);
-            Vector3 c = simplice.Vertices.ElementAt(0);
-            Vector3 ab = b - a;
-            Vector3 ac = c - a;
-            Vector3 abc = Vector3.Cross(ab, ac);
-            Vector3 aO = -a;
-            Vector3 acNormal = Vector3.Cross(abc, ac);
-            Vector3 abNormal = Vector3.Cross(ab, abc);
-
-            if (SameDirectionTest(acNormal,aO))
-            {
-                if (SameDirectionTest(ac,aO))
-                {
-                    simplice.Vertices.Remove(b);
-                    direction = Vector3.Cross(Vector3.Cross(ac, aO), ac);
-                }
-                else
-                {
-                    if (SameDirectionTest(ab,aO))
+                    //the thing gets stuck for ever have to break out of loop
+                    counter++;
+                    if (counter > 100)
                     {
-                        simplice.Vertices.Remove(c);
-                        direction = Vector3.Cross(Vector3.Cross(ab, aO), ab);
+                        return true;
+                    }
+                }
+
+                simplice.Vertices.Add(next_vertice);
+              
+
+                //start processing GJK
+                if (simplice.Vertices.Count == 2)
+                {
+                    #region 2 point test -- line
+                    Vector3 a = simplice.Vertices.ElementAt(1);
+                    Vector3 b = simplice.Vertices.ElementAt(0);
+                    Vector3 ab = b - a;
+                    Vector3 aO = -a;
+
+                    if (DirectionTest(ab, aO))
+                    {
+                        float dot = Vector3.Dot(ab, aO);
+                        float angle = (float)Math.Acos(dot / (ab.Length() * aO.Length()));
+                        dir = Vector3.Cross(Vector3.Cross(ab, aO), ab);
                     }
                     else
                     {
                         simplice.Vertices.Remove(b);
-                        simplice.Vertices.Remove(c);
-                        direction = aO;
+                        dir = aO;
                     }
+                    #endregion
                 }
-            }
-            else
-            {
-                if ( SameDirectionTest(abNormal,aO))
+                else if (simplice.Vertices.Count == 3)
                 {
-                    if (SameDirectionTest(ab,aO))
+                    # region 3 point test -- triangle
+                    Vector3 a = simplice.Vertices.ElementAt(2);
+                    Vector3 b = simplice.Vertices.ElementAt(1);
+                    Vector3 c = simplice.Vertices.ElementAt(0);
+                    Vector3 ab = b - a;
+                    Vector3 ac = c - a;
+                    Vector3 abc = Vector3.Cross(ab, ac);
+                    Vector3 aO = -a;
+                    Vector3 acNormal = Vector3.Cross(abc, ac);
+                    Vector3 abNormal = Vector3.Cross(ab, abc);
+
+                    if (DirectionTest(acNormal, aO))
                     {
-                        simplice.Vertices.Remove(c);
-                        direction = Vector3.Cross(Vector3.Cross(ab, aO), ab);
+                        if (DirectionTest(ac, aO))
+                        {
+                            simplice.Vertices.Remove(b);
+                            dir = Vector3.Cross(Vector3.Cross(ac, aO), ac);
+                        }
+                        else
+                        {
+                            if (DirectionTest(ab, aO))
+                            {
+                                simplice.Vertices.Remove(c);
+                                dir = Vector3.Cross(Vector3.Cross(ab, aO), ab);
+                            }
+                            else
+                            {
+                                simplice.Vertices.Remove(b);
+                                simplice.Vertices.Remove(c);
+                                dir = aO;
+                            }
+                        }
                     }
                     else
                     {
-                        simplice.Vertices.Remove(b);
-                        simplice.Vertices.Remove(c);
-                        direction = aO;
+                        if (DirectionTest(abNormal, aO))
+                        {
+                            if (DirectionTest(ab, aO))
+                            {
+                                simplice.Vertices.Remove(c);
+                                dir = Vector3.Cross(Vector3.Cross(ab, aO), ab);
+                            }
+                            else
+                            {
+                                simplice.Vertices.Remove(b);
+                                simplice.Vertices.Remove(c);
+                                dir = aO;
+                            }
+                        }
+                        else
+                        {
+                            if (DirectionTest(abc, aO))
+                            {
+                                dir = Vector3.Cross(Vector3.Cross(abc, aO), abc);
+                            }
+                            else
+                            {
+                                dir = Vector3.Cross(Vector3.Cross(-abc, aO), -abc);
+                            }
+                        }
                     }
+                    #endregion
                 }
-                else
+                else 
                 {
-                    if (SameDirectionTest(abc,aO))
+                    #region 4 points test the final test
+                    Vector3 a = simplice.Vertices.ElementAt(3);
+                    Vector3 b = simplice.Vertices.ElementAt(2);
+                    Vector3 c = simplice.Vertices.ElementAt(1);
+                    Vector3 d = simplice.Vertices.ElementAt(0);
+                    Vector3 ac = c - a;
+                    Vector3 ad = d - a;
+                    Vector3 ab = b - a;
+                    Vector3 bc = c - b;
+                    Vector3 bd = d - b;
+
+                    Vector3 acd = Vector3.Cross(ad, ac);
+                    Vector3 abd = Vector3.Cross(ab, ad);
+                    Vector3 abc = Vector3.Cross(ac, ab);
+
+                    Vector3 aO = -a;
+
+                    if (DirectionTest(abc, aO))
                     {
-                        direction = Vector3.Cross(Vector3.Cross(abc, aO), abc);
+                        if (DirectionTest(Vector3.Cross(abc, ac), aO))
+                        {
+                            simplice.Vertices.Remove(b);
+                            simplice.Vertices.Remove(d);
+                            dir = Vector3.Cross(Vector3.Cross(ac, aO), ac);
+                        }
+                        else if (DirectionTest(Vector3.Cross(ab, abc), aO))
+                        {
+                            simplice.Vertices.Remove(c);
+                            simplice.Vertices.Remove(d);
+                            dir = Vector3.Cross(Vector3.Cross(ab, aO), ab);
+                        }
+                        else
+                        {
+                            simplice.Vertices.Remove(d);
+                            dir = abc;
+                        }
+                    }
+                    else if (DirectionTest(acd, aO))
+                    {
+                        if (DirectionTest(Vector3.Cross(acd, ad), aO))
+                        {
+                            simplice.Vertices.Remove(b);
+                            simplice.Vertices.Remove(c);
+                            dir = Vector3.Cross(Vector3.Cross(ad, aO), ad);
+                        }
+                        else if (DirectionTest(Vector3.Cross(ac, acd), aO))
+                        {
+                            simplice.Vertices.Remove(b);
+                            simplice.Vertices.Remove(d);
+                            dir = Vector3.Cross(Vector3.Cross(ac, aO), ac);
+                        }
+                        else
+                        {
+                            simplice.Vertices.Remove(b);
+                            dir = acd;
+                        }
+                    }
+                    else if (DirectionTest(abd, aO))
+                    {
+                        if (DirectionTest(Vector3.Cross(abd, ab), aO))
+                        {
+                            simplice.Vertices.Remove(c);
+                            simplice.Vertices.Remove(d);
+                            dir = Vector3.Cross(Vector3.Cross(ab, aO), ab);
+                        }
+                        else if (DirectionTest(Vector3.Cross(ad, abd), aO))
+                        {
+                            simplice.Vertices.Remove(b);
+                            simplice.Vertices.Remove(c);
+                            dir = Vector3.Cross(Vector3.Cross(ad, aO), ad);
+                        }
+                        else
+                        {
+                            simplice.Vertices.Remove(c);
+                            dir = abd;
+                        }
+                   
                     }
                     else
                     {
-                        direction = Vector3.Cross(Vector3.Cross(-abc, aO), -abc);
+                        return true;
                     }
+                    #endregion
+
                 }
             }
-            return false;
         }
 
-        /// <summary>
-        /// Determines which Veronoi region of a tetrahedron
-        /// the origin is in, utilizing the preserved winding
-        /// of the simplice to eliminate certain regions.
-        /// </summary>
-        static bool ProcessTetrehedron(ref Simplice simplice, ref Vector3 direction)
+   
+
+      
+
+
+
+        public static Vector3 SupportFunction(Hull one, Hull two, Vector3 direction)
         {
-            Vector3 a = simplice.Vertices.ElementAt(3);
-            Vector3 b = simplice.Vertices.ElementAt(2);
-            Vector3 c = simplice.Vertices.ElementAt(1);
-            Vector3 d = simplice.Vertices.ElementAt(0);
-            Vector3 ac = c - a;
-            Vector3 ad = d - a;
-            Vector3 ab = b - a;
-            Vector3 bc = c - b;
-            Vector3 bd = d - b;
+            // get furthest point on the  
+            Vector3 furthest_for_one = one.GetFurthestPoint(direction);
+            Vector3 furthest_for_two = two.GetFurthestPoint(-direction);
 
-            Vector3 acd = Vector3.Cross(ad, ac);
-            Vector3 abd = Vector3.Cross(ab, ad);
-            Vector3 abc = Vector3.Cross(ac, ab);
-
-            Vector3 aO = -a;
-
-            if (SameDirectionTest(abc,aO))
-            {
-                if (SameDirectionTest(Vector3.Cross(abc, ac),aO))
-                {
-                    simplice.Vertices.Remove(b);
-                    simplice.Vertices.Remove(d);
-                    direction = Vector3.Cross(Vector3.Cross(ac, aO), ac);
-                }
-                else if (SameDirectionTest(Vector3.Cross(ab, abc),aO))
-                {
-                    simplice.Vertices.Remove(c);
-                    simplice.Vertices.Remove(d);
-                    direction = Vector3.Cross(Vector3.Cross(ab, aO), ab);
-                }
-                else
-                {
-                    simplice.Vertices.Remove(d);
-                    direction = abc;
-                }
-            }
-            else if (SameDirectionTest(acd,aO))
-            {
-                if (SameDirectionTest(Vector3.Cross(acd, ad),aO))
-                {
-                    simplice.Vertices.Remove(b);
-                    simplice.Vertices.Remove(c);
-                    direction = Vector3.Cross(Vector3.Cross(ad, aO), ad);
-                }
-                else if (SameDirectionTest(Vector3.Cross(ac, acd),aO))
-                {
-                    simplice.Vertices.Remove(b);
-                    simplice.Vertices.Remove(d);
-                    direction = Vector3.Cross(Vector3.Cross(ac, aO), ac);
-                }
-                else
-                {
-                    simplice.Vertices.Remove(b);
-                    direction = acd;
-                }
-            }
-            else if (SameDirectionTest(abd,aO))
-            {
-                if (SameDirectionTest(Vector3.Cross(abd, ab),aO))
-                {
-                    simplice.Vertices.Remove(c);
-                    simplice.Vertices.Remove(d);
-                    direction = Vector3.Cross(Vector3.Cross(ab, aO), ab);
-                }
-                else if (SameDirectionTest(Vector3.Cross(ad, abd),aO))
-                {
-                    simplice.Vertices.Remove(b);
-                    simplice.Vertices.Remove(c);
-                    direction = Vector3.Cross(Vector3.Cross(ad, aO), ad);
-                }
-                else
-                {
-                    simplice.Vertices.Remove(c);
-                    direction = abd;
-                }
-            }
-            else
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Calculates the furthest point on the Minkowski 
-        /// difference along a given direction.
-        /// </summary>
-       public static Vector3 Support(
-            Hull one,
-            Hull two,
-            Vector3 direction)
-        {
-            return one.GetFurthestPoint(direction) -
-                two.GetFurthestPoint(-direction);
+            // get minkowsi difference along a given direction.
+            return furthest_for_one - furthest_for_two;
         }
 
        
-         public static bool SameDirectionTest( Vector3 vector, Vector3 otherVector)
+         public static bool DirectionTest( Vector3 vector, Vector3 otherVector)
          {
              return Vector3.Dot(vector, otherVector) > 0;
          }
