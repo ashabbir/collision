@@ -15,7 +15,7 @@ namespace CollisionDetection
         public Boolean Colored { get; set; }
         static int shipCount = 0;
         static float shipPos = 1000;
-        public const float Speed = 10.0f, 
+        public const float Speed = 50.0f, 
 
                     Scale = 0.25f;
         bool _showHull, _showBall;
@@ -39,13 +39,19 @@ namespace CollisionDetection
             _modelTransforms = new Matrix[_model.Bones.Count];
             _hullTransforms = new Matrix[_hull_model.Bones.Count];
 
-            _position = Vector3.Zero;
-            _position.X = ((shipCount & 1) != 0 ? shipPos : -shipPos);
-            _position.Y = ((shipCount & 2) != 0 ? shipPos : -shipPos);
-            _position.Z = ((shipCount & 4) != 0 ? shipPos : -shipPos);
-            shipCount++;
-            if (shipCount % 8 == 0)
-                shipPos -= 800f;
+            //_position = Vector3.Zero;
+            //_position.X = ((shipCount & 1) != 0 ? shipPos : -shipPos);
+            //_position.Y = ((shipCount & 2) != 0 ? shipPos : -shipPos);
+            //_position.Z = ((shipCount & 4) != 0 ? shipPos : -shipPos);
+            //shipCount++;
+            //if (shipCount % 8 == 0)
+            //    shipPos -= 800f;
+            //initial poistion
+            _position = new Vector3(
+                    ((float)(cd.Random.Next(-5000, 5000) * cd.Random.NextDouble())),
+                    ((float)(cd.Random.Next(-5000, 5000) * cd.Random.NextDouble())),
+                    ((float)(cd.Random.Next(-500, 500) * cd.Random.NextDouble()))
+                    );
 
             _direction = //Vector3.Zero;
                 new Vector3(
@@ -96,7 +102,7 @@ namespace CollisionDetection
         public void HandleCollision()
         {
             _direction = -_direction;
-            _rotation.Reflect();
+            //_rotation.Reflect();
         }
 
         public void Update(float elapsedTime)
@@ -194,23 +200,34 @@ namespace CollisionDetection
             if (this == that)
                 return false;
 
-            if (!this.CollisionSphere.Intersects(that.CollisionSphere))
+            // if we have collision on the sphere 
+            if (this.CollisionSphere.Intersects(that.CollisionSphere))
+            {
+                //if spear intersects show balls 
+                that._showBall = true;
+                this._showBall = true;
+                //run GJK on HULLs
+                foreach (var this_hull in this.ShipHulls)
+                {
+                    foreach (var that_hull in that.ShipHulls)
+                        if (GJKAlgorithm.Process(this_hull, that_hull))
+                        {
+                            this._showHull = true;
+                            that._showHull = true;
+                            this._collingMeshIndex = this_hull.IndexNo;
+                            that._collingMeshIndex = that_hull.IndexNo;
+                            this.Colored = true;
+                            that.Colored = true;
+                            hits++;
+                            return true;
+                        }
+                }
+
+            }
+            else 
+            {
                 return false;
-
-            //GJK on HULLs
-            foreach (var this_hull in this.ShipHulls)
-                foreach (var that_hull in that.ShipHulls)
-                    if (GJKAlgorithm.Process(this_hull, that_hull))
-
-                    {
-                        this._collingMeshIndex = this_hull.IndexNo;
-                        that._collingMeshIndex = that_hull.IndexNo;
-                        this.Colored = true;
-                        that.Colored = true;
-                        hits++;
-
-                        return true;
-                    }
+            }
 
             return false;
         }

@@ -14,7 +14,7 @@ namespace CollisionDetection
         public const float OuterBoundarySize = 5000f;
         Random _random;
         public Random Random { get { return _random; } }
-        const int NumberOfShips = 4;
+        const int NumberOfShips = 6;
         const int maxCollisions = 15;
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;

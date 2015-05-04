@@ -10,7 +10,7 @@ namespace CollisionDetection
 {
     class Octree
     {
-        internal const int Depth = 3;
+        internal const int Depth = 2;
         OctreeNode _root;
         KeyboardState _oldKeyState = Keyboard.GetState();
         int keyPressed;
