@@ -16,6 +16,7 @@ namespace CollisionDetection
         static int shipCount = 0;
         static float shipPos = 1000;
         public const float Speed = 10.0f, 
+
                     Scale = 0.25f;
         bool _showHull, _showBall;
         int _collingMeshIndex = 0;
@@ -32,8 +33,6 @@ namespace CollisionDetection
         public SpaceShip(CollisionDetection cd) 
         {
             _boundingCube = cd.BoudingCube;
-            //_showBall = true;
-            //_showHull = true;
             _oldKeyState = Keyboard.GetState();// To avoid null checks on keyboard
             _model = cd.Content.Load<Model>("Models\\ShipModel");
             _hull_model = cd.Content.Load<Model>("Models\\ShipHull");
@@ -54,41 +53,44 @@ namespace CollisionDetection
                    ((float)cd.Random.NextDouble() - 0.5f) * Speed,
                    ((float)cd.Random.NextDouble() - 0.5f) * Speed);
 
-
+            //initial rotation
             _rotation = new Rotation(AxisToRotateUpon(cd.Random));
 
-
-            // Extrating vertices from model
-            {// Model is only has one mesh
-                var meshPart = _model.Meshes[0].MeshParts[0];
-                var vpnt = new VertexPositionNormalTexture[meshPart.VertexBuffer.VertexCount];
-                meshPart.VertexBuffer.GetData<VertexPositionNormalTexture>(vpnt);
-                var vertices = new Vector3[vpnt.Length];
-                for (int k = 0; k < vpnt.Length; k++)
-                    vertices[k] = vpnt[k].Position;
-                CollisionSphere = new BoundingBall(cd, vertices, _position);
+            #region creating bounding ball
+            var meshPart = _model.Meshes[0].MeshParts[0];
+            var vpnt = new VertexPositionNormalTexture[meshPart.VertexBuffer.VertexCount];
+            meshPart.VertexBuffer.GetData<VertexPositionNormalTexture>(vpnt);
+            var vertices = new Vector3[vpnt.Length];
+            for (int k = 0; k < vpnt.Length; k++)
+            {
+                vertices[k] = vpnt[k].Position;
             }
-            
-            
-            //loop through each mesh of hull
+            CollisionSphere = new BoundingBall(cd, vertices, _position);
+            #endregion
+
+
+
+            #region make hullobject for GJK
+             //loop through each mesh of hull
             ShipHulls = new List<Hull>();
             foreach (var hullmesh in _hull_model.Meshes)
             {
                 List<Vector3> hull_vertices = new List<Vector3>();
                 //now get the vertices and make a hull object and add it to shiphull list
-                foreach (var meshPart in hullmesh.MeshParts)
+                foreach (var mparts in hullmesh.MeshParts)
                 {
-                    int vertexStride = meshPart.VertexBuffer.VertexDeclaration.VertexStride;
+                    int vertexStride = mparts.VertexBuffer.VertexDeclaration.VertexStride;
                     
-                    var vpnt = new VertexPositionNormalTexture[meshPart.NumVertices];
-                    meshPart.VertexBuffer.GetData<VertexPositionNormalTexture>(vpnt);
-                    for (int k = 0; k < meshPart.NumVertices; k++)
-                        hull_vertices.Add(vpnt[k].Position);
+                    var vpnt_hull = new VertexPositionNormalTexture[mparts.NumVertices];
+                    mparts.VertexBuffer.GetData<VertexPositionNormalTexture>(vpnt_hull);
+                    for (int k = 0; k < mparts.NumVertices; k++)
+                        hull_vertices.Add(vpnt_hull[k].Position);
                 }
                 //how that i have all the vertices in a hull
                 //let me add that to ship hull with index number
                 ShipHulls.Add(new Hull(hull_vertices , Scale , hullmesh.ParentBone.Index , _rotation));
             }
+            #endregion
         }
 
         public void HandleCollision()
@@ -103,7 +105,7 @@ namespace CollisionDetection
             if (_boundingCube.Collides(CollisionSphere))
                 HandleCollision();
 
-            //Same scale
+            //Update direction
             _position += _direction;// *1 / SpaceShip.Scale;
             CollisionSphere.Center += _direction;// *1 / BoundingBall.Scale;
             ShipHulls.ForEach(h => h.Center += _direction);
@@ -115,6 +117,8 @@ namespace CollisionDetection
 
             _oldKeyState = Keyboard.GetState();
 
+
+            //update rotation
             _rotation.Update(elapsedTime);
             ShipHulls.ForEach(h => h.Rot.Update(elapsedTime));
         }
@@ -197,9 +201,12 @@ namespace CollisionDetection
             foreach (var this_hull in this.ShipHulls)
                 foreach (var that_hull in that.ShipHulls)
                     if (GJKAlgorithm.Process(this_hull, that_hull))
+
                     {
                         this._collingMeshIndex = this_hull.IndexNo;
                         that._collingMeshIndex = that_hull.IndexNo;
+                        this.Colored = true;
+                        that.Colored = true;
                         hits++;
 
                         return true;

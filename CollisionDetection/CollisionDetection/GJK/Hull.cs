@@ -15,6 +15,7 @@ namespace CollisionDetection
         public List<Vector3> Verticecs { get; set; }
         public Vector3 Center { get; set; }
         public float Scale { get; set; }
+        public Matrix ScaleMatrix { get; set; }
         public int IndexNo { get; set; }
         public Rotation Rot { get; set; }
 
@@ -25,13 +26,14 @@ namespace CollisionDetection
             this.Scale = scale;
             this.IndexNo = indexno;
             this.Rot = rot;
+            ScaleMatrix = Matrix.CreateScale(scale);
         }
 
 
-        //get furthest point with dot poroduct
+        //get furthest point with dot product
         public Vector3 GetFurthestPoint(Vector3 direction)
         {
-            Matrix world = Rot.RotationMatrix * Matrix.CreateTranslation(Center);
+            Matrix world = Rot.RotationMatrix * Matrix.CreateTranslation(Center) * ScaleMatrix;
             float max = float.NegativeInfinity;
             Vector3 vec = Vector3.Transform( Verticecs.First() , world);
             if (direction != Vector3.Zero)
@@ -41,6 +43,7 @@ namespace CollisionDetection
 
             foreach (var v in Verticecs)
             {
+                
                 Vector3 temp = Vector3.Transform(v, world);
                 float dot = Vector3.Dot(temp, direction);
                 if (dot > max)
@@ -49,8 +52,8 @@ namespace CollisionDetection
                     vec = temp;
                 }
             }
-           
-            return vec * Center * Scale;
+            return vec;
+            //return vec * Scale;
         }
 
     }
