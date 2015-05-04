@@ -213,9 +213,10 @@ namespace CollisionDetection
                     _showBall = false;
                     continue;
                 }
-
+                
                 this._showBall = true;
                 that._showBall = true;
+
                 //Console.WriteLine("initial Collision detected");
 
                 //GJK on HULLs

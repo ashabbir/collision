@@ -18,11 +18,10 @@ namespace CollisionDetection
 
             int counter = 0;
             //http://www.dyn4j.org/2010/04/gjk-gilbert-johnson-keerthi/
+           
+            
             while(true)
             {
-
-               
-
                 //Get our next simplice point toward the origin.
                 Vector3 next_vertex = SupportFunction(hull_first, hull_second, dir);
 
@@ -228,24 +227,26 @@ namespace CollisionDetection
 
         public static Vector3 trippleproduct(Vector3 a, Vector3 b, Vector3 c) 
         {
-            //(A * B)*C = B(C.dot(A)) - a(C.dot(B))
+            //(A * B) * C = B(C.dot(A)) - a(C.dot(B))
             return (b * Vector3.Dot(c, a)) - (a * Vector3.Dot(c, b));
         }
 
 
         public static Vector3 SupportFunction(Hull one, Hull two, Vector3 direction)
         {
-            // get furthest point on the  
+            // get furthest point for each hull along direction
+            // get minkowsi difference.
+
             Vector3 furthest_for_one = one.GetFurthestPoint(direction);
             Vector3 furthest_for_two = two.GetFurthestPoint(-direction);
 
-            // get minkowsi difference along a given direction.
             return furthest_for_one - furthest_for_two;
         }
 
        
          public static bool DirectionTest( Vector3 vector, Vector3 otherVector)
          {
+             //if doc of vectors > 0 then same direction
              return Vector3.Dot(vector, otherVector) > 0;
          }
 
