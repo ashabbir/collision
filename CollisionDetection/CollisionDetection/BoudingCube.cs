@@ -147,6 +147,5 @@ namespace CollisionDetection
                 return Math.Abs(distance) <= bv.Radius;
             }
         }
-       
     }
 }

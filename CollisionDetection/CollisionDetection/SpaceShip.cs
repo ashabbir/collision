@@ -1,20 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Content;
+using System;
+using System.Collections.Generic;
 
 namespace CollisionDetection
 {
     class SpaceShip
     {
-
         #region variables
         public int hits = 0;
+        public LinkedListNode<SpaceShip> ShipNode { get; set; }
+        public Octree.OctreeNode OctTreeNode { get; set; }
         public Boolean Colored { get; set; }
-        
-        public const float Speed = 65.0f, 
+        static int shipCount = 0;
+        static float shipPos = 1000;
+        public const float Speed = 10.0f, 
                     Scale = 0.25f;
         bool _showHull, _showBall;
         int _collingMeshIndex = 0;
@@ -23,13 +24,14 @@ namespace CollisionDetection
         Vector3 _position, _direction;
         Model _model, _hull_model;
         Matrix[] _modelTransforms, _hullTransforms;
+        BoundingCube _boundingCube;
         public List<Hull> ShipHulls { get; set; }
-
         #endregion
 
         public BoundingBall CollisionSphere { get; set; }
         public SpaceShip(CollisionDetection cd) 
         {
+            _boundingCube = cd.BoudingCube;
             //_showBall = true;
             //_showHull = true;
             _oldKeyState = Keyboard.GetState();// To avoid null checks on keyboard
@@ -37,16 +39,17 @@ namespace CollisionDetection
             _hull_model = cd.Content.Load<Model>("Models\\ShipHull");
             _modelTransforms = new Matrix[_model.Bones.Count];
             _hullTransforms = new Matrix[_hull_model.Bones.Count];
-            // TODO: start ship from differnt positions so they are not initally colliding
-            // or give some time before testing for collision detection
 
-            _position = new Vector3(
-                    ((float)(cd.Random.Next(-100,100) * cd.Random.NextDouble())),
-                    ((float)(cd.Random.Next(-100,100) * cd.Random.NextDouble())),
-                    ((float)(cd.Random.Next(-10,10) * cd.Random.NextDouble()))
-                    );
+            _position = Vector3.Zero;
+            _position.X = ((shipCount & 1) != 0 ? shipPos : -shipPos);
+            _position.Y = ((shipCount & 2) != 0 ? shipPos : -shipPos);
+            _position.Z = ((shipCount & 4) != 0 ? shipPos : -shipPos);
+            shipCount++;
+            if (shipCount % 8 == 0)
+                shipPos -= 800f;
 
-            _direction = new Vector3(
+            _direction = //Vector3.Zero;
+                new Vector3(
                    ((float)cd.Random.NextDouble() - 0.5f) * Speed,
                    ((float)cd.Random.NextDouble() - 0.5f) * Speed,
                    ((float)cd.Random.NextDouble() - 0.5f) * Speed);
@@ -86,15 +89,19 @@ namespace CollisionDetection
                 //let me add that to ship hull with index number
                 ShipHulls.Add(new Hull(hull_vertices , Scale , hullmesh.ParentBone.Index , _rotation));
             }
-
-           
-
         }
 
-        public void Update(float elapsedTime, SpaceShip[] spaceShips, BoundingCube boundingCube)
+        public void HandleCollision()
         {
-            if (Collides(spaceShips, boundingCube))
-                _direction = -_direction;
+            _direction = -_direction;
+            _rotation.Reflect();
+        }
+
+        public void Update(float elapsedTime)
+        {
+            // Collides against outer boundries
+            if (_boundingCube.Collides(CollisionSphere))
+                HandleCollision();
 
             //Same scale
             _position += _direction;// *1 / SpaceShip.Scale;
@@ -109,7 +116,7 @@ namespace CollisionDetection
             _oldKeyState = Keyboard.GetState();
 
             _rotation.Update(elapsedTime);
-            this.ShipHulls.ForEach(h => h.Rot.Update(elapsedTime));
+            ShipHulls.ForEach(h => h.Rot.Update(elapsedTime));
         }
 
         public void DrawBoundingVolume(Camera camera)
@@ -177,63 +184,29 @@ namespace CollisionDetection
             }
         }
 
-        /// <summary>
-        /// Check if this spaceship collides with any other spaceship or the boundries
-        /// </summary>
-        /// <returns>Returns true if there is a collsion returns false otherwise</returns>
-        private bool Collides(SpaceShip[] spaceShips, BoundingCube boundingCube)
+        public bool Collides(SpaceShip that)
         {
-            // Collides against outer boundries
-            if (boundingCube.Collides(CollisionSphere))
-                return true;
+            // Avoid testing collsion against self
+            if (this == that)
+                return false;
 
-            // Collides with another spacehship
-            foreach (SpaceShip that in spaceShips)
-            {
-                // Avoid testing collsion against self
-                if (this == that)
-                    continue;
+            if (!this.CollisionSphere.Intersects(that.CollisionSphere))
+                return false;
 
-
-                //first check for spear if the spears intersect then go further into
-                //gjk for ship hulls
-                if (!this.CollisionSphere.Intersects(that.CollisionSphere))
-                {
-                    that._showBall = false;
-                    _showBall = false;
-                    continue;
-                }
-
-                this._showBall = true;
-                that._showBall = true;
-                //Console.WriteLine("initial Collision detected");
-
-                //GJK on HULLs
-                foreach (var this_hull in this.ShipHulls)
-                {
-                    foreach (var that_hull in that.ShipHulls)
+            //GJK on HULLs
+            foreach (var this_hull in this.ShipHulls)
+                foreach (var that_hull in that.ShipHulls)
+                    if (GJKAlgorithm.Process(this_hull, that_hull))
                     {
-                        if (GJKAlgorithm.Process(this_hull, that_hull))
-                        {
-                            this._collingMeshIndex = this_hull.IndexNo;
-                            that._collingMeshIndex = that_hull.IndexNo;
-                            //Console.WriteLine("GJK Detected");
-                            hits++;
-                            this.Colored = true;
-                            that.Colored = true;
-                            return true;
-                        }
-                        
-                    }
-                    
-                }
+                        this._collingMeshIndex = this_hull.IndexNo;
+                        that._collingMeshIndex = that_hull.IndexNo;
+                        hits++;
 
-            }
+                        return true;
+                    }
 
             return false;
         }
-
-     
 
         /// <summary>
         /// Randomly decides axis to rotate ship upon

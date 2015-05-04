@@ -1,9 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CollisionDetection
 {
@@ -26,20 +23,11 @@ namespace CollisionDetection
             //Center = ((vertices[min].Position + vertices[max].Position) * 0.5f * SpaceShip.Scale) + position;
             Center = position; //* SpaceShip.Scale + position;
             //position = Center;
-            Radius = (float)Math.Sqrt(Vector3.Dot(vertices[max] - Center, vertices[max] - Center)) * SpaceShip.Scale;
+
+            Radius = (float)Math.Sqrt(Vector3.Dot(vertices[max] - Center, vertices[max] - Center)) * SpaceShip.Scale * 0.6f;
             // Loading the sphere's model and saving the bone transform to make it easier to draw
             _model = cd.Content.Load<Model>("Models\\Sphere");
             _transforms = new Matrix[_model.Bones.Count];
-        }
-
-        //incase if u wana do gjk on spears that ill use this function
-        public Vector3 GetFurthestPoint(Vector3 direction)
-        {
-            if (direction != Vector3.Zero)
-            {
-                direction.Normalize();
-            }
-            return Center + Radius * direction;
         }
 
         // Compute indices to the two most separated points of the (up to) six points

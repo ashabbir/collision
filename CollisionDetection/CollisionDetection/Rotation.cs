@@ -1,14 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CollisionDetection
 {
     public class Rotation
     {
-        const float Speed = 0.03f;
+        float Speed = 0.01f;
         float _rotationX, _rotationY, _rotationZ;
         Vector3 _axisToRotate;
         public Rotation(Vector3 axisToRotate)
@@ -29,6 +26,11 @@ namespace CollisionDetection
                        Matrix.CreateRotationY(_rotationY) *
                        Matrix.CreateRotationZ(_rotationZ);
             }
+        }
+
+        public void Reflect()
+        {
+            Speed = -Speed;
         }
 
         public void Update(float elapsedTime)

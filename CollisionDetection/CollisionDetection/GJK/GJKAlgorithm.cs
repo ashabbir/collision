@@ -17,20 +17,15 @@ namespace CollisionDetection
             Simplice simplice = new Simplice(s);
 
             int counter = 0;
-            while(true)
+            while (true)
             {
-
-               
-
                 //Get our next simplice point toward the origin.
                 Vector3 next_vertice = SupportFunction(hull_first, hull_second, dir);
-
-                //
                 if (!DirectionTest(next_vertice, dir))
                 {
                     return false;
                 }
-                else 
+                else
                 {
                     //the thing gets stuck for ever have to break out of loop
                     counter++;
@@ -41,7 +36,7 @@ namespace CollisionDetection
                 }
 
                 simplice.Vertices.Add(next_vertice);
-              
+
 
                 //start processing GJK
                 if (simplice.Vertices.Count == 2)
@@ -130,7 +125,7 @@ namespace CollisionDetection
                     }
                     #endregion
                 }
-                else 
+                else
                 {
                     #region 4 points test the final test
                     Vector3 a = simplice.Vertices.ElementAt(3);
@@ -208,7 +203,7 @@ namespace CollisionDetection
                             simplice.Vertices.Remove(c);
                             dir = abd;
                         }
-                   
+
                     }
                     else
                     {

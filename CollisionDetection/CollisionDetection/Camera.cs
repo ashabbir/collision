@@ -1,9 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CollisionDetection
 {
@@ -23,8 +19,6 @@ namespace CollisionDetection
             _left = Vector3.Left,
             _down = Vector3.Down,
             _right = Vector3.Right;
-
-
 
         Matrix _projection = Matrix.CreatePerspectiveFieldOfView(
                 MathHelper.PiOver4, AspectRatio, NearPlaneDistance, FarPlaceDistance);
@@ -48,7 +42,6 @@ namespace CollisionDetection
                 _up = Vector3.Up;
             }
 
-
             // Rotate camera around origin
             if (Keyboard.GetState().IsKeyDown(Keys.W))
             {
@@ -64,14 +57,13 @@ namespace CollisionDetection
             {
                 _position = Vector3.Transform(_position, Matrix.CreateRotationX(-AngularSpeed));
                 _up = Vector3.Transform(_up, Matrix.CreateRotationX(-AngularSpeed));
-
             }
             if (Keyboard.GetState().IsKeyDown(Keys.D))
             {
                 _position = Vector3.Transform(_position, Matrix.CreateRotationY(AngularSpeed));
                 _up = Vector3.Transform(_up, Matrix.CreateRotationY(AngularSpeed));
             }
-            _up.Normalize();
+            _up.Normalize(); // This stops floating point errors from accumulating
         }
     }
 }
