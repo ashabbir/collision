@@ -14,7 +14,7 @@ namespace CollisionDetection
         Random _random;
         public Random Random { get { return _random; } }
         internal BoundingCube BoudingCube { get { return _boundinghCube; } }
-        const int NumberOfShips = 6;
+        const int NumberOfShips = 20;
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
         BoundingCube _boundinghCube;

@@ -81,18 +81,10 @@ namespace CollisionDetection
                 //let me add that to ship hull with index number
                 ShipHulls.Add(new Hull(hull_vertices, Size, hullmesh.ParentBone.Index - 1, _rotation, hullmesh.Name));
             }
-            #endregion
-
-            
+            #endregion   
 
             #region re-arrange
-            ShipHulls.ForEach(h => Console.Write(h.IndexNo + h.Name));
             Shuffle(ShipHulls);
-            Console.WriteLine("");
-            ShipHulls.ForEach(h => Console.Write(h.IndexNo + h.Name));
-            Console.WriteLine("");
-
-            Console.WriteLine("----");
             #endregion
         }
 
