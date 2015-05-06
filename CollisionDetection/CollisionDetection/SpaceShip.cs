@@ -64,24 +64,24 @@ namespace CollisionDetection
             #endregion
 
             #region make hullobject for GJK
-             //loop through each mesh of hull
-            ShipHulls = new List<Hull>(_hullModel.Meshes.Count);
+            //loop through each mesh of hull
+            ShipHulls = new List<Hull>();
             foreach (var hullmesh in _hullModel.Meshes)
             {
-                Vector3[] vertices = null;
+                List<Vector3> hull_vertices = new List<Vector3>();
                 //now get the vertices and make a hull object and add it to shiphull list
                 foreach (var mparts in hullmesh.MeshParts)
                 {
                     int vertexStride = mparts.VertexBuffer.VertexDeclaration.VertexStride;
-                    var vpnt = new VertexPositionNormalTexture[mparts.NumVertices];
-                    mparts.VertexBuffer.GetData<VertexPositionNormalTexture>(vpnt);
-                    vertices = new Vector3[vpnt.Length];
-                    for (int i = 0; i < mparts.NumVertices; i++)
-                        vertices[i] = vpnt[i].Position;
+
+                    var vpnt_hull = new VertexPositionNormalTexture[mparts.NumVertices];
+                    mparts.VertexBuffer.GetData<VertexPositionNormalTexture>(vpnt_hull);
+                    for (int k = 0; k < mparts.NumVertices; k++)
+                        hull_vertices.Add(vpnt_hull[k].Position);
                 }
                 //how that i have all the vertices in a hull
                 //let me add that to ship hull with index number
-                ShipHulls.Add(new Hull(vertices, hullmesh.ParentBone.Index, this));
+                ShipHulls.Add(new Hull(hull_vertices, Size, hullmesh.ParentBone.Index, _rotation));
             }
             #endregion
         }
@@ -89,12 +89,12 @@ namespace CollisionDetection
         public void HandleCollision()
         {
             _direction = -_direction;
-            _rotation.Reflect();
+            //_rotation.Reflect();
         }
 
         public void Update(float elapsedTime)
         {
-            // Collides against outer boundries
+           // Collides against outer boundries
             if (_boundingCube.Collides(CollisionSphere))
                 HandleCollision();
 
@@ -109,10 +109,14 @@ namespace CollisionDetection
 
             _oldKeyState = Keyboard.GetState();
 
-            Transform = Scale * _rotation.RotationMatrix * Matrix.CreateTranslation(_position);
 
             //update rotation
             _rotation.Update(elapsedTime);
+            ShipHulls.ForEach(h => h.Rot.Update(elapsedTime));
+
+
+            Transform = Scale * _rotation.RotationMatrix * Matrix.CreateTranslation(_position);
+
         }
 
         public void DrawBoundingVolume(Camera camera)
@@ -184,16 +188,14 @@ namespace CollisionDetection
             if (this.CollisionSphere.Intersects(that.CollisionSphere))
             {
                 //if sphear intersects show balls 
-                //that._showBall = true;
-                //this._showBall = true;
+                that._showBall = true;
+                this._showBall = true;
                 //run GJK on HULLs
                 foreach (var thisHull in this.ShipHulls)
                 {
                     foreach (var thatHull in that.ShipHulls)
                         if (GJKAlgorithm.Process(thisHull, thatHull))
                         {
-                            //this._showHull = true;
-                            //that._showHull = true;
                             this._collingMeshIndex = thisHull.IndexNo;
                             that._collingMeshIndex = thatHull.IndexNo;
                             this.Colored = true;
@@ -205,7 +207,6 @@ namespace CollisionDetection
             else 
             {
                 this._showBall = false;
-                that._showBall = false;
             }
             return false;
         }        
