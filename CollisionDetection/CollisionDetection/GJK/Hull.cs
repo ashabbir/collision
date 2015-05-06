@@ -56,5 +56,29 @@ namespace CollisionDetection
             //return vec * Scale;
         }
 
+
+        //get furthest point with dot product in a direction
+        // trying to optimize get F p 
+        // instead of transformation on world do it on dir then take the max n transform that
+        public Vector3 GetFurthestPoint_2(Vector3 direction)
+        {
+            Matrix world = Rot.RotationMatrix * Matrix.CreateTranslation(Center) * ScaleMatrix;
+            float max = float.NegativeInfinity;
+            Vector3 vec = Verticecs.First();
+            Vector3 dir = Vector3.Transform(direction, world);
+            foreach (var v in Verticecs)
+            {
+
+                
+                float dot = Vector3.Dot(v, dir);
+                if (dot > max)
+                {
+                    max = dot;
+                    vec = v;
+                }
+            }
+            return Vector3.Transform(vec , world);
+            //return vec * Scale;
+        }
     }
 }

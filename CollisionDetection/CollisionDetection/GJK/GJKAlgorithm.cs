@@ -250,10 +250,14 @@ namespace CollisionDetection
         {
             // get furthest point for each hull along direction
             // get minkowsi difference.
-            Vector3 furthest_for_one = one.GetFurthestPoint(direction);
-            Vector3 furthest_for_two = two.GetFurthestPoint(-direction);
+           // Vector3 result = one.GetFurthestPoint(direction) - two.GetFurthestPoint(-direction);
 
-            return furthest_for_one - furthest_for_two;
+
+
+            Vector3 furthest_for_one = one.GetFurthestPoint_2(direction);
+            Vector3 furthest_for_two = two.GetFurthestPoint_2(-direction);
+            Vector3 test =  furthest_for_one - furthest_for_two;
+            return test;
         }
 
        
