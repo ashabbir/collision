@@ -201,9 +201,7 @@ namespace CollisionDetection
                             return true;
                         }
                 }
-
             }
-
             return false;
         }        
     }
