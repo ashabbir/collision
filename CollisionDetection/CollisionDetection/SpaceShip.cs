@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CollisionDetection
 {
@@ -17,7 +18,7 @@ namespace CollisionDetection
         public Matrix Transform { get; private set; }
         public Vector3 Position { get { return _position; } }
         public float Radius { get { return _model.Meshes[0].BoundingSphere.Radius * SpaceShip.Size; } }
-        public const float Speed = 50.0f, Size = 0.25f;
+        public const float Speed = 60.0f, Size = 0.25f;
         bool _showHull, _showBall;
         int _collingMeshIndex = 0;
         KeyboardState _oldKeyState;
@@ -81,8 +82,20 @@ namespace CollisionDetection
                 }
                 //how that i have all the vertices in a hull
                 //let me add that to ship hull with index number
-                ShipHulls.Add(new Hull(hull_vertices, Size, hullmesh.ParentBone.Index, _rotation));
+                ShipHulls.Add(new Hull(hull_vertices, Size, hullmesh.ParentBone.Index - 1, _rotation, hullmesh.Name));
             }
+            #endregion
+
+            
+
+            #region re-arrange
+            ShipHulls.ForEach(h => Console.Write(h.IndexNo + h.Name));
+            Shuffle(ShipHulls);
+            Console.WriteLine("");
+            ShipHulls.ForEach(h => Console.Write(h.IndexNo + h.Name));
+            Console.WriteLine("");
+
+            Console.WriteLine("----");
             #endregion
         }
 
@@ -211,6 +224,22 @@ namespace CollisionDetection
                 this._showBall = false;
             }
             return false;
-        }        
+        }
+
+        public static void Shuffle( IList<Hull> list)
+        {
+            Random rng = new Random();
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                Hull value = list[k];
+                value.IndexNo = n;
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+    
     }
 }

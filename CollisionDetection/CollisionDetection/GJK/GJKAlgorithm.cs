@@ -36,7 +36,7 @@ namespace CollisionDetection
                 {
                     //the thing gets stuck for ever have to break out of loop
                     counter++;
-                    if (counter > 60)
+                    if (counter > 12)
                     {
                         //its probably a collision
                         return true;
