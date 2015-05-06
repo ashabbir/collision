@@ -48,14 +48,15 @@ namespace CollisionDetection
             _oldKeyState = Keyboard.GetState();
 
             // Each spaceship updates itself
+            _root.TestAllCollision(_root);
+
             for (int i = 0; i < _ships.Length; i++)
             {
                 _ships[i].Update(gameTime);
                 RemoveShip(_ships[i]);
                 AddShip(_ships[i]);
             }
-
-            _root.TestAllCollision(_root);
+           
         }
 
         public void AddShip(SpaceShip ship)

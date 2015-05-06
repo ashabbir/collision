@@ -89,7 +89,7 @@ namespace CollisionDetection
         public void HandleCollision()
         {
             _direction = -_direction;
-            //_rotation.Reflect();
+            _rotation.Reflect();
         }
 
         public void Update(float elapsedTime)
@@ -100,6 +100,8 @@ namespace CollisionDetection
 
             //Update direction
             _position += _direction;// *1 / SpaceShip.Scale;
+            ShipHulls.ForEach(h => h.Center += _direction);
+
             //CollisionSphere.Center += _direction;// *1 / BoundingBall.Scale;
 
             if (Keyboard.GetState().IsKeyDown(Keys.H) && !_oldKeyState.IsKeyDown(Keys.H))
@@ -112,7 +114,7 @@ namespace CollisionDetection
 
             //update rotation
             _rotation.Update(elapsedTime);
-            ShipHulls.ForEach(h => h.Rot.Update(elapsedTime));
+            ShipHulls.ForEach(h => h.Rot = _rotation);
 
 
             Transform = Scale * _rotation.RotationMatrix * Matrix.CreateTranslation(_position);
