@@ -8,7 +8,7 @@ namespace CollisionDetection
     {
         Model _model;
         Matrix[] _transforms;
-        public Vector3 Center { get { return _ship.Position; } }
+        public Vector3 Center { get; set; }
         public float Radius { get; set; }
         SpaceShip _ship;
 
@@ -20,13 +20,35 @@ namespace CollisionDetection
             int min = mostDistantPoints.Item1, max = mostDistantPoints.Item2;
 
             // Set up sphere to just encompass these two points
-            // Too much floating point error
-            //Center = (vertices[min] + vertices[max]) * 0.5f;
+            Center = (vertices[min] + vertices[max]) * 0.5f;
 
-            Radius = ship.Radius;//(float)Math.Sqrt(Vector3.Dot(vertices[max] - Center, vertices[max] - Center)) * SpaceShip.Size;
+            Radius = (float)Math.Sqrt(Vector3.Dot(vertices[max] - Center, vertices[max] - Center));
+
+            // Grow sphere to include all points
+            for (int i = 0; i < vertices.Length; i++)
+                SphereOfSphereAndPt(vertices[i]);
+
             // Loading the sphere's model and saving the bone transform to make it easier to draw
             _model = cd.Content.Load<Model>("Models\\Sphere");
             _transforms = new Matrix[_model.Bones.Count];
+            Center = _ship.Position; // Ship is slightly off center, but radius is good
+        }
+
+        // Given Sphere s and Point p, update s (if needed) to just encompass p
+        void SphereOfSphereAndPt(Vector3 p)
+        {
+            // Compute squared distance between point and sphere center
+            Vector3 d = p - Center;
+            float distnaceSqured = Vector3.Dot(d, d);
+            // Only update s if point p is outside it
+            if (distnaceSqured > Radius * Radius)
+            {
+                float dist = (float)Math.Sqrt(distnaceSqured);
+                float newRadius = (Radius + dist) * 0.5f;
+                float k = (newRadius - Radius) / dist;
+                Radius = newRadius;
+                Center += d * k;
+            }
         }
 
         // Compute indices to the two most separated points of the (up to) six points

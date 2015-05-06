@@ -48,9 +48,6 @@ namespace CollisionDetection
 
             //initial rotation
             _rotation = new Rotation(cd.Random);
-
-            
-            // TODO:  need to scale the guys right here!!!
             
             #region creating bounding ball
             {
@@ -113,6 +110,7 @@ namespace CollisionDetection
 
             //Update direction
             _position += _direction;// *1 / SpaceShip.Scale;
+            CollisionSphere.Center += _direction;
             ShipHulls.ForEach(h => h.Center += _direction);
 
             //CollisionSphere.Center += _direction;// *1 / BoundingBall.Scale;
