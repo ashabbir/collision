@@ -12,48 +12,40 @@ namespace CollisionDetection
     /// </summary>
     public class Hull
     {
-        public List<Vector3> Verticecs { get; set; }
-        public Vector3 Center { get; set; }
-        public float Scale { get; set; }
-        public Matrix ScaleMatrix { get; set; }
+        public Vector3[] Verticecs { get; set; }
+        public Vector3 Center { get { return _ship.Position; } }
         public int IndexNo { get; set; }
-        public Rotation Rot { get; set; }
+        SpaceShip _ship;
 
-        public Hull(List<Vector3> vertices , float scale , int indexno , Rotation rot)
+        public Hull(Vector3[] vertices, int index, SpaceShip ship)
         {
-            this.Center = Vector3.Zero;
             this.Verticecs = vertices;
-            this.Scale = scale;
-            this.IndexNo = indexno;
-            this.Rot = rot;
-            ScaleMatrix = Matrix.CreateScale(scale);
+            this.IndexNo = index;
+            _ship = ship;
         }
 
 
         //get furthest point with dot product in a direction
         public Vector3 GetFurthestPoint(Vector3 direction)
         {
-            Matrix world = Rot.RotationMatrix * Matrix.CreateTranslation(Center) * ScaleMatrix;
             float max = float.NegativeInfinity;
-            Vector3 vec = Vector3.Transform( Verticecs.First() , world);
+            Vector3 vec = Verticecs.First();
             if (direction != Vector3.Zero)
-            {
                 direction.Normalize();
-            }
+
+            Matrix invertedWorld = Matrix.Invert(_ship.Transform);//Rot.RotationMatrix * Matrix.CreateTranslation(Center) * ScaleMatrix;
+            Vector3 invertedDirection = Vector3.Transform(direction, invertedWorld);
 
             foreach (var v in Verticecs)
             {
-                
-                Vector3 temp = Vector3.Transform(v, world);
-                float dot = Vector3.Dot(temp, direction);
+                float dot = Vector3.Dot(v, invertedDirection);
                 if (dot > max)
                 {
                     max = dot;
-                    vec = temp;
+                    vec = v;
                 }
             }
             return vec;
-            //return vec * Scale;
         }
 
 

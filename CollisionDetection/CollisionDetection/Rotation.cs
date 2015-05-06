@@ -5,26 +5,43 @@ namespace CollisionDetection
 {
     public class Rotation
     {
-        float Speed = 0.01f;
-        float _rotationX, _rotationY, _rotationZ;
+        float Speed = 0.03f;
+        float _rotation;//_rotationX, _rotationY, _rotationZ;
         Vector3 _axisToRotate;
-        public Rotation(Vector3 axisToRotate)
+
+        public Rotation(Random random)
         {
-            if (axisToRotate == Vector3.UnitX
-             || axisToRotate == Vector3.UnitY
-             || axisToRotate == Vector3.UnitZ)
-                _axisToRotate = axisToRotate;
-            else
-                throw new ArgumentException("Invalid value for rotate, only valid values are: Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ");
+            switch (random.Next(3))
+            {
+                case 0:
+                    _axisToRotate = Vector3.UnitX;
+                    break;
+                case 1:
+                    _axisToRotate = Vector3.UnitY;
+                    break;
+                case 2:
+                    _axisToRotate = Vector3.UnitZ;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Value returned by random number generator in AxisToRotateUpon is out of bounds");
+            }
         }
 
         public Matrix RotationMatrix
         {
             get
             {
-                return Matrix.CreateRotationX(_rotationX) *
-                       Matrix.CreateRotationY(_rotationY) *
-                       Matrix.CreateRotationZ(_rotationZ);
+                if (_axisToRotate == Vector3.UnitX)
+                    return Matrix.CreateRotationX(_rotation);
+                else if (_axisToRotate == Vector3.UnitY)
+                    return Matrix.CreateRotationY(_rotation);
+                else if (_axisToRotate == Vector3.UnitZ)
+                    return Matrix.CreateRotationZ(_rotation);
+                else
+                    throw new ArgumentException("Invalid value for rotate, only valid values are: Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ");
+                //return Matrix.CreateRotationX(_rotationX) *
+                //       Matrix.CreateRotationY(_rotationY) *
+                //       Matrix.CreateRotationZ(_rotationZ);
             }
         }
 
@@ -35,12 +52,13 @@ namespace CollisionDetection
 
         public void Update(float elapsedTime)
         {
-            if (_axisToRotate == Vector3.UnitX)
-                _rotationX += elapsedTime * MathHelper.ToRadians(Speed);
-            else if (_axisToRotate == Vector3.UnitY)
-                _rotationY += elapsedTime * MathHelper.ToRadians(Speed);
-            else if (_axisToRotate == Vector3.UnitZ)
-                _rotationZ += elapsedTime * MathHelper.ToRadians(Speed);
+            //if (_axisToRotate == Vector3.UnitX)
+            //    _rotationX += elapsedTime * MathHelper.ToRadians(Speed);
+            //else if (_axisToRotate == Vector3.UnitY)
+            //    _rotationY += elapsedTime * MathHelper.ToRadians(Speed);
+            //else if (_axisToRotate == Vector3.UnitZ)
+            //    _rotationZ += elapsedTime * MathHelper.ToRadians(Speed);
+            _rotation += elapsedTime * MathHelper.ToRadians(Speed);
         }
     }
 }
