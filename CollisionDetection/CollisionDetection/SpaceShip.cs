@@ -202,6 +202,11 @@ namespace CollisionDetection
                         }
                 }
             }
+            else 
+            {
+                this._showBall = false;
+                that._showBall = false;
+            }
             return false;
         }        
     }

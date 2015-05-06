@@ -28,12 +28,12 @@ namespace CollisionDetection
         //get furthest point with dot product in a direction
         public Vector3 GetFurthestPoint(Vector3 direction)
         {
-            Matrix invertedWorld = Matrix.Invert(_ship.Transform);//Rot.RotationMatrix * Matrix.CreateTranslation(Center) * ScaleMatrix;
             float max = float.NegativeInfinity;
             Vector3 vec = Verticecs.First();
             if (direction != Vector3.Zero)
                 direction.Normalize();
 
+            Matrix invertedWorld = Matrix.Invert(_ship.Transform);//Rot.RotationMatrix * Matrix.CreateTranslation(Center) * ScaleMatrix;
             Vector3 invertedDirection = Vector3.Transform(direction, invertedWorld);
 
             foreach (var v in Verticecs)
