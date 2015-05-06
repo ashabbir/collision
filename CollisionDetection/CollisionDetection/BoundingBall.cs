@@ -6,25 +6,24 @@ namespace CollisionDetection
 {
     public class BoundingBall
     {
-        public const float Scale = SpaceShip.Scale; // Needed because of floating point errors
         Model _model;
         Matrix[] _transforms;
-        public Vector3 Center { get; set; }
+        public Vector3 Center { get { return _ship.Position; } }
         public float Radius { get; set; }
+        SpaceShip _ship;
 
-        public BoundingBall(CollisionDetection cd, Vector3[] vertices, Vector3 position)
+        public BoundingBall(CollisionDetection cd, Vector3[] vertices, SpaceShip ship)
         {
+            _ship = ship;
             // Find the most separated point pair defining the encompassing AABB
             var mostDistantPoints = MostSeparatedPointsOnAABB(vertices);
             int min = mostDistantPoints.Item1, max = mostDistantPoints.Item2;
 
             // Set up sphere to just encompass these two points
             // Too much floating point error
-            //Center = ((vertices[min].Position + vertices[max].Position) * 0.5f * SpaceShip.Scale) + position;
-            Center = position; //* SpaceShip.Scale + position;
-            //position = Center;
+            //Center = (vertices[min] + vertices[max]) * 0.5f;
 
-            Radius = (float)Math.Sqrt(Vector3.Dot(vertices[max] - Center, vertices[max] - Center)) * SpaceShip.Scale * 0.6f;
+            Radius = ship.Radius;//(float)Math.Sqrt(Vector3.Dot(vertices[max] - Center, vertices[max] - Center)) * SpaceShip.Size;
             // Loading the sphere's model and saving the bone transform to make it easier to draw
             _model = cd.Content.Load<Model>("Models\\Sphere");
             _transforms = new Matrix[_model.Bones.Count];
@@ -91,9 +90,7 @@ namespace CollisionDetection
                 foreach (BasicEffect effect in mesh.Effects)
                 {
                     effect.EnableDefaultLighting();
-                    effect.World = _transforms[mesh.ParentBone.Index]
-                        * Matrix.CreateScale(Scale)
-                        * Matrix.CreateTranslation(Center);
+                    effect.World = _transforms[mesh.ParentBone.Index] * _ship.Transform;
                     effect.View = camera.View;
                     effect.Projection = camera.Projection;
                     effect.Alpha = 0.5f;

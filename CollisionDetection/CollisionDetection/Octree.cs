@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CollisionDetection
 {
-    class Octree
+    public class Octree
     {
         internal const int Depth = 2;
         OctreeNode _root;
@@ -169,9 +169,9 @@ namespace CollisionDetection
                     || sphereFront >= nodeFront
                     || sphereBack <= nodeBack;
                 
-                // Usefull for debug
+                //// Usefull for debug
                 //_vertices[22] = new VertexPositionColor(ship.CollisionSphere.Center, Color.Black);
-                //_vertices[23] = new VertexPositionColor(ship.CollisionSphere.Center + new Vector3(0,-ship.CollisionSphere.Radius, 0) ,  Color.Black);
+                //_vertices[23] = new VertexPositionColor(ship.CollisionSphere.Center + new Vector3(0, -ship.CollisionSphere.Radius, 0), Color.Black);
 
                 //var center = Vector3.Transform(Center,
                 //Matrix.CreateTranslation(ship.CollisionSphere.Center));

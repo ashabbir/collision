@@ -10,38 +10,25 @@ namespace CollisionDetection
     /// </summary>
     public class CollisionDetection : Game
     {
-        //public Timer t = new Timer(5000);
-        public const float OuterBoundarySize = 5000f;
+        public const float OuterBoundarySize = 5000f, ShipSpacing = 500f;
         Random _random;
         public Random Random { get { return _random; } }
-        const int NumberOfShips = 6;
-        const int maxCollisions = 15;
+        internal BoundingCube BoudingCube { get { return _boundinghCube; } }
+        const int NumberOfShips = 2;
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
-
         BoundingCube _boundinghCube;
-        internal BoundingCube BoudingCube { get { return _boundinghCube; } }
         SpaceShip[] _spaceShips;
         Camera _camera;
         Octree _octTree;
-
-        //public bool can_add { get; set; }
 
         SpriteFont _fpsFont;
         Vector2 _fpsPostion = new Vector2(32, 32);
         int _frameRate, _frameCount;
         TimeSpan _elapsedFrameTime = TimeSpan.Zero;
 
-        //void t_Elapsed(object sender, ElapsedEventArgs e)
-        //{
-        //    can_add = true;
-        //}
-
         public CollisionDetection()
         {
-            //t.Elapsed += new ElapsedEventHandler(t_Elapsed);
-            //t.Enabled = true;
-            //can_add = false;
             Content.RootDirectory = "Content";
             _graphics = new GraphicsDeviceManager(this);
             _graphics.PreferredBackBufferWidth = Camera.ScreenWidth;
@@ -84,8 +71,17 @@ namespace CollisionDetection
 
             // Spaceships
             _spaceShips = new SpaceShip[NumberOfShips];
+            float shipSpacing = 0;
             for (int i = 0; i < NumberOfShips; i++)
-                _spaceShips[i] = new SpaceShip(this);
+            {
+                Vector3 position = new Vector3(
+                (i & 1) != 0 ? shipSpacing : -shipSpacing,
+                (i & 2) != 0 ? shipSpacing : -shipSpacing,
+                (i & 4) != 0 ? shipSpacing : -shipSpacing);
+                 _spaceShips[i] = new SpaceShip(this, position);
+                 if (i % 8 == 0)
+                     shipSpacing += ShipSpacing;
+            }
 
             _octTree = new Octree(GraphicsDevice, OuterBoundarySize, _spaceShips);
 
@@ -119,25 +115,6 @@ namespace CollisionDetection
 
             _octTree.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
  
-            ////add ships if the timer clicked and count is less
-            //if (can_add && _spaceShips.Count < NumberOfShips)
-            //{
-            //    _spaceShips.Add(new SpaceShip(this, Vector3.Zero));
-            //    can_add = false;
-            //}
-
-            ////remove ships if they have collided too many times
-            ////this is necessary as some time they get stuck
-            //List<SpaceShip> toremove = new List<SpaceShip>();
-            //foreach (var ship in _spaceShips)
-            //{
-            //    if (ship.hits > maxCollisions)
-            //    {
-            //        toremove.Add(ship);
-            //    }
-            //}
-            //_spaceShips = _spaceShips.Except(toremove).ToList();
-
             base.Update(gameTime);
         }
 
