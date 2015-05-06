@@ -226,7 +226,8 @@ namespace CollisionDetection
             }
             else 
             {
-                return false;
+                this._showBall = false;
+                that._showBall = false;
             }
 
             return false;
