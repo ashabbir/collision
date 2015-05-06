@@ -30,7 +30,7 @@ namespace CollisionDetection
         }
 
 
-        //get furthest point with dot product
+        //get furthest point with dot product in a direction
         public Vector3 GetFurthestPoint(Vector3 direction)
         {
             Matrix world = Rot.RotationMatrix * Matrix.CreateTranslation(Center) * ScaleMatrix;

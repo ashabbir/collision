@@ -26,7 +26,8 @@ namespace CollisionDetection
                 //Get our next simplice point toward the origin.
                 Vector3 next_vertex = SupportFunction(hull_first, hull_second, dir);
 
-                //
+                //they are not in the same direction so no use to test further
+                //we dont have a collision
                 if (!DirectionTest(next_vertex, dir))
                 {
                     return false;
@@ -35,8 +36,9 @@ namespace CollisionDetection
                 {
                     //the thing gets stuck for ever have to break out of loop
                     counter++;
-                    if (counter > 100)
+                    if (counter > 50)
                     {
+                        //its probably a collision
                         return true;
                     }
                 }
@@ -47,17 +49,18 @@ namespace CollisionDetection
                 if (simplice.Count == 2)
                 {
                     #region 2 point test -- line
-                    Vector3 a = simplice[1];
-                    Vector3 b = simplice[0];
+                    Vector3 a = simplice[1]; // last added
+                    Vector3 b = simplice[0]; // first added
                     Vector3 ab = b - a;
                     
-
+                    //if its in ab region
                     if (DirectionTest(ab, -a))
                     {
                         dir = trippleproduct(ab, -a, ab);
                     }
                     else
                     {
+                        //if its beyond point a then b is useless
                         simplice.Remove(b);
                         dir = -a;
                     }
@@ -66,9 +69,9 @@ namespace CollisionDetection
                 else if (simplice.Count == 3)
                 {
                     # region 3 point test -- triangle
-                    Vector3 a = simplice[2];
-                    Vector3 b = simplice[1];
-                    Vector3 c = simplice[0];
+                    Vector3 a = simplice[2]; //latest
+                    Vector3 b = simplice[1]; // second latest
+                    Vector3 c = simplice[0]; //first
                     
                     
                     Vector3 ab = b - a;
@@ -80,17 +83,22 @@ namespace CollisionDetection
                     Vector3 acNormal = Vector3.Cross(abc, ac);
                     Vector3 abNormal = Vector3.Cross(ab, abc);
 
+                    // if its in ac
                     if (DirectionTest(acNormal, -a))
                     {
+                        //if in ac region but outside abc
                         if (DirectionTest(ac, -a))
                         {
+                            // update simplice and get new direction
                             simplice.Remove(b);
                             dir = trippleproduct(ac, -a, ac);
                         }
                         else
                         {
-                            if (DirectionTest(ab, -a))
+                            //check if its in ab region n outside abc
+                            if (DirectionTest(ab, -a)) 
                             {
+                                // remove c n get new dir
                                 simplice.Remove(c);
                                 dir = trippleproduct(ab,-a,ab);
                             }
@@ -104,8 +112,10 @@ namespace CollisionDetection
                     }
                     else
                     {
+                        //check in ab region
                         if (DirectionTest(abNormal, -a))
                         {
+                            //outside abc
                             if (DirectionTest(ab, -a))
                             {
                                 simplice.Remove(c);
@@ -120,6 +130,7 @@ namespace CollisionDetection
                         }
                         else
                         {
+                            //get direction for 4th vertice to enclose
                             if (DirectionTest(abc, -a))
                             {
                                 dir = trippleproduct(abc, -a, abc);
@@ -137,6 +148,9 @@ namespace CollisionDetection
                 else
                 {
                     #region 4 points test the final test
+                    //i tried to write it my self but was not converging some if else was not correct
+                    //this was very complicated n has been taken from 
+                    //http://programyourfaceoff.blogspot.com/2012/01/gjk-algorithm.html
                     Vector3 a = simplice[3];
                     Vector3 b = simplice[2];
                     Vector3 c = simplice[1];
