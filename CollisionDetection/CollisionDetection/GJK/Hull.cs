@@ -68,7 +68,8 @@ namespace CollisionDetection
                 Vector3 vec = Verticecs.First();
                 Matrix world = Rot.RotationMatrix * Matrix.CreateTranslation(Center) * ScaleMatrix;
 
-                Vector3 dir = Vector3.Transform(direction, world);
+                Vector3 dir = Vector3.TransformNormal(direction, world);
+                 
                 foreach (var v in Verticecs)
                 {
 
