@@ -79,6 +79,10 @@ namespace CollisionDetection
                 ShipHulls.Add(new Hull(hull_vertices, Size, hullmesh.ParentBone.Index, _rotation));
             }
             #endregion
+
+            #region rearrange hulls
+            Shuffle(ShipHulls);
+            #endregion
         }
 
         public void HandleCollision()
@@ -197,6 +201,21 @@ namespace CollisionDetection
                 }
             }
             return false;
-        }        
+        }
+
+        public static void Shuffle(IList<Hull> list)
+        {
+            Random rng = new Random();
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                Hull value = list[k];
+                value.IndexNo = n;
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
     }
 }
