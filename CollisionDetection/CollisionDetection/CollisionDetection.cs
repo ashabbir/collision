@@ -33,12 +33,14 @@ namespace CollisionDetection
             _graphics = new GraphicsDeviceManager(this);
             _graphics.PreferredBackBufferWidth = Camera.ScreenWidth;
             _graphics.PreferredBackBufferHeight = Camera.ScreenHeight;
-            // TODO: uncomment this while demonstrating
             // running fullscreen does not work well with debug mode
-            //if (!_graphics.IsFullScreen)
-            //    _graphics.ToggleFullScreen();
-            // Once we are using non-default resolution we need to apply changes
+#if !DEBUG
+            if (!_graphics.IsFullScreen)
+                _graphics.ToggleFullScreen();
+#endif
+             //Once we are using non-default resolution we need to apply changes
             _graphics.ApplyChanges();
+
             IsMouseVisible = true;
         }
 
