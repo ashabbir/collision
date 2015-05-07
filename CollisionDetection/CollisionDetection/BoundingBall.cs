@@ -8,9 +8,21 @@ namespace CollisionDetection
     {
         Model _model;
         Matrix[] _transforms;
-        public Vector3 Center { get; set; }
+        Vector3 _center;
+        public Vector3 Center
+        {
+            get { return _center; }
+            set 
+            {
+                _center = value;
+                if (Color.Y < 1)
+                    Color = new Vector3(1, Color.Y + 0.005f, Color.Z + 0.005f);
+                    //Color = Vector3.Lerp(Color, Vector3.One, 0.005f);
+            }
+        }
         public float Radius { get; set; }
         SpaceShip _ship;
+        public Vector3 Color { get; set; }
 
         public BoundingBall(CollisionDetection cd, Vector3[] vertices, SpaceShip ship)
         {
@@ -32,6 +44,7 @@ namespace CollisionDetection
             _model = cd.Content.Load<Model>("Models\\Sphere");
             _transforms = new Matrix[_model.Bones.Count];
             Center = _ship.Position; // Ship is slightly off center, but radius is good
+            Color = Vector3.One;
         }
 
         // Given Sphere s and Point p, update s (if needed) to just encompass p
@@ -116,6 +129,7 @@ namespace CollisionDetection
                     effect.View = camera.View;
                     effect.Projection = camera.Projection;
                     effect.Alpha = 0.5f;
+                    effect.DiffuseColor = Color;
                 }
                 // Draw the mesh, using the effects set above.
                 mesh.Draw();

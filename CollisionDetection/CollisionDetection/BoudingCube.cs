@@ -126,10 +126,6 @@ namespace CollisionDetection
                 {
                     pass.Apply();
 
-                    //RasterizerState rs = new RasterizerState();
-                    //rs.CullMode = CullMode.None;
-                    //_cd.GraphicsDevice.RasterizerState = rs;
-
                     _cd.GraphicsDevice.DrawUserIndexedPrimitives
                         <VertexPositionNormalTexture>(
                         PrimitiveType.TriangleList,

@@ -5,6 +5,7 @@ namespace CollisionDetection
 {
     public class Rotation
     {
+        // We removed some fuctionality that we don't use in the nuame of perfomance
         float Speed = 0.03f;
         float _rotation;//_rotationX, _rotationY, _rotationZ;
         Vector3 _axisToRotate;

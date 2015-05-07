@@ -12,7 +12,6 @@ namespace CollisionDetection
     /// </summary>
         public class Hull
         {
-            public string Name { get; set; }
             public List<Vector3> Verticecs { get; set; }
             public Vector3 Center { get; set; }
             public float Scale { get; set; }
@@ -20,7 +19,7 @@ namespace CollisionDetection
             public int IndexNo { get; set; }
             public Rotation Rot { get; set; }
 
-            public Hull(List<Vector3> vertices, float scale, int indexno, Rotation rot, string name)
+            public Hull(List<Vector3> vertices, float scale, int indexno, Rotation rot)
             {
                 this.Center = Vector3.Zero;
                 this.Verticecs = vertices;
@@ -28,7 +27,6 @@ namespace CollisionDetection
                 this.IndexNo = indexno;
                 this.Rot = rot;
                 ScaleMatrix = Matrix.CreateScale(scale);
-                this.Name = name;
             }
 
 
@@ -72,8 +70,6 @@ namespace CollisionDetection
                  
                 foreach (var v in Verticecs)
                 {
-
-
                     float dot = Vector3.Dot(v, dir);
                     if (dot > max)
                     {

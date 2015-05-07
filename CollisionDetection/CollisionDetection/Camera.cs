@@ -23,15 +23,7 @@ namespace CollisionDetection
         Matrix _projection = Matrix.CreatePerspectiveFieldOfView(
                 MathHelper.PiOver4, AspectRatio, NearPlaneDistance, FarPlaceDistance);
         public Matrix Projection { get { return _projection; } }
-        public Matrix View
-        {
-            get
-            {
-                return Matrix.CreateLookAt(_position,
-                    Vector3.Zero,
-                    _up);
-            }
-        }
+        public Matrix View { get { return Matrix.CreateLookAt(_position, Vector3.Zero, _up);} }
 
         public void Update()
         {

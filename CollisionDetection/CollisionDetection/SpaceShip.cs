@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace CollisionDetection
 {
@@ -17,8 +16,7 @@ namespace CollisionDetection
         public static Matrix Scale { get { return _scale; } }
         public Matrix Transform { get; private set; }
         public Vector3 Position { get { return _position; } }
-        public float Radius { get { return _model.Meshes[0].BoundingSphere.Radius * SpaceShip.Size; } }
-        public const float Speed = 60.0f, Size = 0.25f;
+        public const float Speed = 50.0f, Size = 0.25f;
         bool _showHull, _showBall;
         int _collingMeshIndex = 0;
         KeyboardState _oldKeyState;
@@ -34,7 +32,7 @@ namespace CollisionDetection
         public SpaceShip(CollisionDetection cd, Vector3 position) 
         {
             _boundingCube = cd.BoudingCube;
-            _oldKeyState = Keyboard.GetState();// To avoid null checks on keyboard
+            _oldKeyState = Keyboard.GetState();
             _model = cd.Content.Load<Model>("Models\\ShipModel");
             _hullModel = cd.Content.Load<Model>("Models\\ShipHull");
             _modelTransforms = new Matrix[_model.Bones.Count];
@@ -71,7 +69,6 @@ namespace CollisionDetection
                 foreach (var mparts in hullmesh.MeshParts)
                 {
                     int vertexStride = mparts.VertexBuffer.VertexDeclaration.VertexStride;
-
                     var vpnt_hull = new VertexPositionNormalTexture[mparts.NumVertices];
                     mparts.VertexBuffer.GetData<VertexPositionNormalTexture>(vpnt_hull);
                     for (int k = 0; k < mparts.NumVertices; k++)
@@ -79,19 +76,15 @@ namespace CollisionDetection
                 }
                 //how that i have all the vertices in a hull
                 //let me add that to ship hull with index number
-                ShipHulls.Add(new Hull(hull_vertices, Size, hullmesh.ParentBone.Index - 1, _rotation, hullmesh.Name));
+                ShipHulls.Add(new Hull(hull_vertices, Size, hullmesh.ParentBone.Index, _rotation));
             }
-            #endregion   
-
-            #region re-arrange
-            Shuffle(ShipHulls);
             #endregion
         }
 
         public void HandleCollision()
         {
             _direction = -_direction;
-            _rotation.Reflect();
+            //_rotation.Reflect();
         }
 
         public void Update(float elapsedTime)
@@ -102,10 +95,8 @@ namespace CollisionDetection
 
             //Update direction
             _position += _direction;// *1 / SpaceShip.Scale;
-            CollisionSphere.Center += _direction;
+            CollisionSphere.Center += _direction;// *1 / BoundingBall.Scale;
             ShipHulls.ForEach(h => h.Center += _direction);
-
-            //CollisionSphere.Center += _direction;// *1 / BoundingBall.Scale;
 
             if (Keyboard.GetState().IsKeyDown(Keys.H) && !_oldKeyState.IsKeyDown(Keys.H))
                 _showHull = !_showHull;
@@ -114,14 +105,11 @@ namespace CollisionDetection
 
             _oldKeyState = Keyboard.GetState();
 
-
             //update rotation
             _rotation.Update(elapsedTime);
             ShipHulls.ForEach(h => h.Rot = _rotation);
 
-
             Transform = Scale * _rotation.RotationMatrix * Matrix.CreateTranslation(_position);
-
         }
 
         public void DrawBoundingVolume(Camera camera)
@@ -192,9 +180,8 @@ namespace CollisionDetection
             // if we have collision on the sphere 
             if (this.CollisionSphere.Intersects(that.CollisionSphere))
             {
+                CollisionSphere.Color = Color.Red.ToVector3();  
                 //if sphear intersects show balls 
-                that._showBall = true;
-                this._showBall = true;
                 //run GJK on HULLs
                 foreach (var thisHull in this.ShipHulls)
                 {
@@ -209,27 +196,7 @@ namespace CollisionDetection
                         }
                 }
             }
-            else 
-            {
-                this._showBall = false;
-            }
             return false;
-        }
-
-        public static void Shuffle( IList<Hull> list)
-        {
-            Random rng = new Random();
-            int n = list.Count;
-            while (n > 1)
-            {
-                n--;
-                int k = rng.Next(n + 1);
-                Hull value = list[k];
-                value.IndexNo = n;
-                list[k] = list[n];
-                list[n] = value;
-            }
-        }
-    
+        }        
     }
 }

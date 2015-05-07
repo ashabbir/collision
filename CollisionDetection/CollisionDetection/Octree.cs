@@ -10,7 +10,7 @@ namespace CollisionDetection
 {
     public class Octree
     {
-        internal const int Depth = 2;
+        internal const int Depth = 3;
         OctreeNode _root;
         KeyboardState _oldKeyState = Keyboard.GetState();
         int keyPressed;
@@ -88,7 +88,6 @@ namespace CollisionDetection
 
             //if (!straddling && ship.OctTreeNode == _root)
             //{
-
 
             // So many failed algorithms, ended up using none at all ='[
                 ship.OctTreeNode.Ships.Remove(ship.ShipNode);
@@ -188,10 +187,15 @@ namespace CollisionDetection
 
                     Children[childOctant].AddShip(ship, this);
                 }
-                else // Straddles or no children left
+                else if (straddles) // Straddles 
                 {
                     ship.OctTreeNode = parent;
                     ship.ShipNode = parent.Ships.AddLast(ship);
+                }
+                else // no children left
+                {
+                    ship.OctTreeNode = this;
+                    ship.ShipNode = Ships.AddLast(ship);
                 }
             }
 
